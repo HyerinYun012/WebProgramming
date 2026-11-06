@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><title>01 메인 - 검색 전 | 시흥쏙쏙</title>
+<link rel="stylesheet" href="assets/styles.css"><script src="assets/app.js"></script></head>
+<body><div class="page" id="root" data-screen-label="01 메인 - 검색 전"></div>
+<script>
+const I=SI,C=SC,D=SDATA;
+const quick=[['청년','#E6EFFF','#2F6BF0',38],['외국인','#E7F7EC','#16A34A',21],['다문화','#E2F6F3','#0E9488',14],['소상공인','#FFF3DF','#E58A00',17],['가족','#FDEAF3','#D9468F',22],['어르신','#FFF3DF','#C2410C',12],['교육','#F1EAFF','#7C4DDB',29],['문화 · 행사','#F1EAFF','#7C4DDB',33]];
+const persona=[
+ ['청년이라면','취업·주거·문화 지원 한눈에','#E6EFFF','#1747B5',38,'청년'],
+ ['외국인 주민이라면','생활·통역·행정 안내','#E7F7EC','#0F6B33',21,'외국인'],
+ ['어르신이라면','건강·디지털·돌봄 서비스','#FFF3DF','#8A4B00',12,'어르신'],
+ ['사장님이라면','소상공인 경영·시설 지원','#F1EAFF','#4B2A9A',17,'소상공인'],
+];
+const deadline=[D.results[2],D.results[7],D.results[0],D.results[3]];
+root.innerHTML=`
+${C.header(-1)}
+<section class="hero tall">${C.heroDeco()}
+ <div class="hero-inner">
+  <h1><em>시흥시</em>의 다양한 공공사업과 소식을 찾아보세요.</h1>
+  <p class="sub">시민을 위한 지원사업, 문화행사, 교육프로그램 등 유용한 정보를 한 번에 검색할 수 있습니다.</p>
+  <div class="search">${C.searchBox('')}</div>
+  <div class="hot-keywords"><span class="lbl">인기 검색어</span>${['청년 월세','외국인 통역','소상공인 지원금','한국어 교육','가족 체험'].map(k=>`<span class="kw"># ${k}</span>`).join('')}</div>
+ </div>
+</section>
+${C.filterbar()}
+
+<section class="sec" style="margin-top:64px">
+ <div class="sec-head"><div><h2>분야별로 찾아보기</h2><div class="desc">관심 있는 분야를 선택하면 관련 공고만 모아서 보여드려요.</div></div></div>
+ <div class="quick">${quick.map(([l,bg,c,n])=>`<a><span class="qi" style="background:${bg};color:${c}">${I.grid.replace('width="20" height="20"','width="26" height="26"')}</span>${l}<small>${n}건</small></a>`).join('')}</div>
+</section>
+
+<section class="sec" style="margin-top:64px">
+ <div class="sec-head"><div><h2>나에게 맞는 지원, <em>쏙쏙</em> 골라봤어요</h2><div class="desc">로그인하면 연령·국적·관심사에 맞춰 자동으로 추천해 드려요.</div></div><a class="more">맞춤 설정 ${I.arrow}</a></div>
+ <div class="persona">${persona.map(([h,p,bg,c,n,cat])=>`<a style="background:${bg};color:${c}"><h5>${h}</h5><p>${p}</p><span class="n">${n}개 공고 보기 ${I.arrow}</span>${C.ph(cat,'일러스트')}</a>`).join('')}</div>
+</section>
+
+<section class="sec" style="margin-top:64px">
+ <div class="sec-head"><div><h2>곧 마감되는 공고</h2><div class="desc">놓치기 전에 확인하세요.</div></div><a class="more">전체 보기 ${I.arrow}</a></div>
+ <div class="deadline-grid">${deadline.map(d=>`<article class="dcard">${C.ph(d.tags[0],d.img,C.status(d.status))}<div class="b"><div class="tags">${d.tags.map(C.tag).join('')}</div><h4>${d.title.replace('시흥시 ','')}</h4><div class="row"><span>${d.org}</span><b>${d.dday}</b></div></div></article>`).join('')}</div>
+</section>
+
+<section class="sec two-col" style="margin-top:64px">
+ <div class="box">
+  <div class="box-head"><h3>공고 · 알림</h3><div class="notice-tabs"><span class="on">전체</span><span>공고</span><span>고시</span><span>보도자료</span></div></div>
+  ${[['공고','2025년 시흥시 청년 창업 지원사업 참여기업 모집 공고',1,'11.14'],['고시','시흥시 도시관리계획(공원) 결정 변경 고시',1,'11.14'],['공고','2024년 하반기 시흥시 공공근로사업 참여자 모집',0,'11.12'],['보도','시흥시, 외국인 주민 통역 서비스 7개 언어로 확대',0,'11.11'],['공고','시흥 갯골축제 자원봉사자 모집 결과 안내',0,'11.08'],['공고','2024년 소상공인 시설개선 지원사업 2차 공고',0,'11.06']].map(([c,t,n,d])=>`<div class="nrow"><span class="cat">${c}</span><span class="t">${t}</span>${n?'<span class="new">N</span>':''}<span class="d">2024.${d}</span></div>`).join('')}
+ </div>
+ <div class="box">
+  <div class="box-head"><h3>이번 주 행사</h3><a class="more" style="height:32px">${I.cal} 달력</a></div>
+  <div class="cal-week">${[['월',11,1],['화',12,0],['수',13,1],['목',14,1],['금',15,1],['토',16,1],['일',17,0]].map(([w,d,e],i)=>`<div class="${i===3?'on':''}">${w}<b>${d}</b>${e?'<span class="dot"></span>':'<span style="height:4px"></span>'}</div>`).join('')}</div>
+  ${[['10:00','청년 취업 특강 : 면접의 기술','시흥시 청년센터'],['14:00','다문화 가족 요리 교실','다문화가족지원센터'],['19:00','시흥 시민 오케스트라 정기공연','시흥ABC행복학습타운']].map(([t,n,p])=>`<div class="ev"><span class="time">${t}</span><div><div class="t">${n}</div><div class="p">${I.pin.replace(/20/g,'14')}${p}</div></div></div>`).join('')}
+ </div>
+</section>
+
+<section class="sec" style="margin-top:64px">
+ <div class="banner"><div class="ring" style="width:320px;height:320px;right:180px;top:-80px"></div><div class="ring" style="width:200px;height:200px;right:240px;top:-20px"></div>
+  <div><h3>새 공고가 올라오면 바로 알려드릴게요</h3><p>관심 분야를 등록하면 카카오톡·문자로 맞춤 공고 알림을 보내드려요.</p></div>
+  <a class="btn">${I.bell} 알림 신청하기</a></div>
+</section>
+${C.footer()}`;
+</script></body></html>

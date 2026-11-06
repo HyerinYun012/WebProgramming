@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><title>02b 검색창 포커스 | 시흥쏙쏙</title>
+<link rel="stylesheet" href="assets/styles.css"><script src="assets/app.js"></script>
+<style>.dim{position:absolute;inset:80px 0 0 0;background:rgba(15,27,61,.28);z-index:3}.hero{z-index:4;overflow:visible}.hero .search{z-index:6}</style></head>
+<body><div class="page" id="root" data-screen-label="02b 검색창 포커스"></div>
+<script>
+const I=SI,C=SC;
+root.innerHTML=`
+${C.header(-1)}
+<section class="hero tall">${C.heroDeco()}
+ <div class="hero-inner">
+  <h1><em>시흥시</em>의 다양한 공공사업과 소식을 찾아보세요.</h1>
+  <p class="sub">시민을 위한 지원사업, 문화행사, 교육프로그램 등 유용한 정보를 한 번에 검색할 수 있습니다.</p>
+  <div class="search">${C.searchBox('',{caret:true})}
+   <div class="ac">
+    <div class="ac-sec">
+     <div class="ac-title">최근 검색어 <a>전체 삭제</a></div>
+     ${['한국어 교육','소상공인 지원금','가족 체험 행사'].map(k=>`<div class="ac-row"><span style="color:var(--g-400)">${I.clock}</span><span>${k}</span><span class="x">${I.x}</span></div>`).join('')}
+    </div>
+    <div class="ac-sec">
+     <div class="ac-title">지금 많이 찾는 검색어</div>
+     <div style="display:grid;grid-template-columns:1fr 1fr;column-gap:32px">
+     ${['청년 월세','외국인 통역','소상공인 지원금','한국어 교육','가족 체험','어르신 디지털','공공근로','갯골축제'].map((k,i)=>`<div class="ac-row"><b style="width:18px;color:${i<3?'var(--blue-600)':'var(--g-400)'}">${i+1}</b><span>${k}</span>${i<3?`<span class="meta" style="color:var(--red)">${I.trend}</span>`:''}</div>`).join('')}
+     </div>
+    </div>
+   </div>
+  </div>
+  <div class="hot-keywords" style="visibility:hidden"><span class="kw">#</span></div>
+ </div>
+</section>
+<div class="dim"></div>
+${C.filterbar()}
+<section class="sec" style="margin-top:64px;height:420px"></section>
+`;
+</script></body></html>

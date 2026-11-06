@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><title>06 검색 결과 없음 | 시흥쏙쏙</title>
+<link rel="stylesheet" href="assets/styles.css"><script src="assets/app.js"></script></head>
+<body><div class="page" id="root" data-screen-label="06 검색 결과 없음"></div>
+<script>
+const I=SI,C=SC;
+root.innerHTML=`
+${C.header(-1)}
+<section class="hero compact">${C.heroDeco()}
+ <div class="hero-inner">
+  <h1><em>시흥시</em>의 다양한 공공사업과 소식을 찾아보세요.</h1>
+  <p class="sub">시민을 위한 지원사업, 문화행사, 교육프로그램 등 유용한 정보를 한 번에 검색할 수 있습니다.</p>
+  <div class="search" style="margin-top:24px">${C.searchBox('드론 자격증 지원금')}</div>
+ </div>
+</section>
+${C.filterbar({cat:'환경'})}
+<section class="sec" style="margin-top:48px">
+ <div class="res-bar"><div class="count">검색 결과 <b>0</b>건</div></div>
+ <div class="empty">
+  <div class="icon">${I.emptyS}</div>
+  <h3>‘<em>드론 자격증 지원금</em>’에 대한 검색 결과가 없어요</h3>
+  <p>현재 진행 중인 공고가 없거나, 다른 표현으로 등록되어 있을 수 있어요.</p>
+  <ul><li>단어의 철자가 정확한지 확인해 주세요.</li><li>‘드론’, ‘자격증’처럼 더 짧은 검색어로 검색해 보세요.</li><li>선택된 필터(카테고리 : 환경)를 해제해 보세요.</li></ul>
+  <div class="kws"><span style="font-size:14px;color:var(--g-500);align-self:center;margin-right:4px">이 검색어는 어떠세요?</span>${['자격증','직업훈련','청년 취업','국민내일배움카드'].map(k=>`<span class="kw" style="background:#fff"># ${k}</span>`).join('')}</div>
+  <div style="display:flex;gap:8px;justify-content:center;margin-top:28px"><a class="btn btn-line">${I.reset} 필터 초기화</a><a class="btn btn-primary">${I.bell} 관련 공고 알림 받기</a></div>
+ </div>
+</section>
+<section class="sec" style="margin-top:56px">${C.reco('이런 공고는 어떠세요?','검색 결과는 없지만, 지금 많은 시민들이 확인하고 있는 공고를 추천해 드려요.')}</section>
+${C.footer()}`;
+</script></body></html>

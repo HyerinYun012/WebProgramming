@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><title>04 검색 결과 - 리스트형 | 시흥쏙쏙</title>
+<link rel="stylesheet" href="assets/styles.css"><script src="assets/app.js"></script></head>
+<body><div class="page" id="root" data-screen-label="04 검색 결과 - 리스트형"></div>
+<script>
+const I=SI,C=SC,D=SDATA;
+root.innerHTML=`
+${C.header(-1)}
+<section class="hero compact">${C.heroDeco()}
+ <div class="hero-inner">
+  <h1><em>시흥시</em>의 다양한 공공사업과 소식을 찾아보세요.</h1>
+  <p class="sub">시민을 위한 지원사업, 문화행사, 교육프로그램 등 유용한 정보를 한 번에 검색할 수 있습니다.</p>
+  <div class="search" style="margin-top:24px">${C.searchBox('시흥')}</div>
+ </div>
+</section>
+${C.filterbar()}
+<section class="sec" style="margin-top:40px">${C.reco()}</section>
+<section class="sec" style="margin-top:56px">
+ ${C.resBar(124,'list')}
+ ${C.statusTabs([124,86,9,12,17])}
+ <div class="res-list">${D.results.slice(0,7).map(C.lrow).join('')}</div>
+ ${C.pager()}
+</section>
+${C.footer()}`;
+</script></body></html>

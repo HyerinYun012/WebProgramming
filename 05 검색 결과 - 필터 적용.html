@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><title>05 검색 결과 - 필터 적용 | 시흥쏙쏙</title>
+<link rel="stylesheet" href="assets/styles.css"><script src="assets/app.js"></script></head>
+<body><div class="page" id="root" data-screen-label="05 검색 결과 - 필터 적용"></div>
+<script>
+const I=SI,C=SC,D=SDATA;
+const r=D.results;
+const filtered=[r[0],r[7],r[2],
+ {status:'open',tags:['청년','취업'],title:'시흥시 청년 면접정장 무료 대여 사업',img:'정장 대여 매장',target:'만 19세 ~ 34세 구직 청년',period:'2024.01.02. ~ 2024.12.31.',benefit:'면접 정장 연 3회 무료 대여',dday:'D-47'},
+ {status:'soon',tags:['청년','문화'],title:'시흥 청년 버스킹 페스티벌 참가팀 모집',img:'야외 버스킹 공연',target:'시흥시 거주·활동 청년 예술인',period:'2024.11.18. ~ 2024.12.06.',benefit:'공연비 지원, 무대·음향 제공',dday:'오픈 D-4'},
+ {status:'open',tags:['청년','교육'],title:'시흥시 청년 금융 교육 아카데미',img:'금융 교육 강의실',target:'시흥시 거주 청년 (만 19세 ~ 39세)',period:'2024.11.01. ~ 2024.11.28.',benefit:'재무 상담, 자산 관리 교육 등',dday:'D-14'},
+];
+root.innerHTML=`
+${C.header(-1)}
+<section class="hero compact">${C.heroDeco()}
+ <div class="hero-inner">
+  <h1><em>시흥시</em>의 다양한 공공사업과 소식을 찾아보세요.</h1>
+  <p class="sub">시민을 위한 지원사업, 문화행사, 교육프로그램 등 유용한 정보를 한 번에 검색할 수 있습니다.</p>
+  <div class="search" style="margin-top:24px">${C.searchBox('청년')}</div>
+ </div>
+</section>
+${C.filterbar({age:'19 ~ 34세',nat:'전체',cat:'취업 · 교육 외 1',reg:'정왕동'})}
+<div class="applied"><span class="lbl">적용된 필터</span>
+ ${['나이 : 19 ~ 34세','취업','교육','문화','지역 : 정왕동'].map(f=>`<span class="fchip">${f}${I.x}</span>`).join('')}
+ <a class="clear-all">전체 해제</a></div>
+<section class="sec" style="margin-top:40px">
+ ${C.resBar(18,'grid','<small>‘청년’ · 필터 5개 적용</small>')}
+ ${C.statusTabs([18,12,2,3,1])}
+ <div class="res-grid">${filtered.map(C.hcard).join('')}</div>
+ ${C.pager().replace(/<span>4<\/span><span>5<\/span><span>…<\/span><span>14<\/span>/,'')}
+</section>
+<section class="sec" style="margin-top:56px">${C.reco('조건과 비슷한 공고','선택하신 나이·지역 조건과 유사한 다른 분야의 공고도 함께 확인해 보세요.')}</section>
+${C.footer()}`;
+</script></body></html>
