@@ -73,7 +73,7 @@ const C = {};
 C.header = (active) => {
   const m = ['사업 · 지원사업','공고 · 알림','문화 · 행사','생활정보','시민참여'];
   return `<header class="gnb"><div class="container">
-    <a class="logo" href="01 메인 - 검색 전.html"><span class="logo-mark"><i></i><i></i></span>시흥<b>쏙쏙</b></a>
+    <a class="logo" href="index.html" aria-label="시흥쏙쏙 홈"><span class="logo-mark"><i></i><i></i></span>시흥<b>쏙쏙</b></a>
     <nav class="gnb-menu">${m.map((x,i)=>`<a class="${i===active?'on':''}">${x}</a>`).join('')}</nav>
     <div class="gnb-right"><a class="login">${I.user}로그인</a><a class="btn btn-primary">회원가입</a></div>
   </div></header>`;
@@ -92,14 +92,14 @@ C.filterbar = (vals={}) => {
     <div class="fb-item"><span class="fb-label">${ic}${l}</span><span class="select ${vals[k]?'active':''}">${vals[k]||'전체'}${I.chev}</span></div>`).join('')}
     <a class="fb-reset">${I.reset}초기화</a></div>`;
 };
-C.vcard = d => `<article class="vcard">
+C.vcard = d => `<article class="vcard" data-detail="${encodeURIComponent(d.title)}" role="button" tabindex="0" aria-label="${d.title} 상세 보기">
   <div class="tags">${d.tags.map(tag).join('')}</div>
   ${ph(d.tags[0],d.img).replace('__S__','')}
   <h4>${d.title}</h4>
   ${infoRows(d,['지원 대상','신청 기간','지원 내용'])}
   <a class="arrow-btn go" style="margin-top:14px">${I.arrow}</a>
 </article>`;
-C.hcard = d => `<article class="hcard ${d.status==='closed'?'closed':''}">
+C.hcard = d => `<article class="hcard ${d.status==='closed'?'closed':''}" data-detail="${encodeURIComponent(d.title)}" role="button" tabindex="0" aria-label="${d.title} 상세 보기">
   ${ph(d.tags[0],d.img).replace('__S__',status(d.status))}
   <div class="body">
     <div class="tags">${d.tags.map(tag).join('')}</div>
@@ -107,7 +107,7 @@ C.hcard = d => `<article class="hcard ${d.status==='closed'?'closed':''}">
     ${infoRows(d)}
     <div class="foot"><a class="arrow-btn">${I.arrow}</a></div>
   </div></article>`;
-C.lrow = d => `<article class="lrow">
+C.lrow = d => `<article class="lrow" data-detail="${encodeURIComponent(d.title)}" role="button" tabindex="0" aria-label="${d.title} 상세 보기">
   ${ph(d.tags[0],d.img).replace('__S__','')}
   <div class="body">
     <div class="top">${status(d.status)}${d.tags.map(tag).join('')}</div>
