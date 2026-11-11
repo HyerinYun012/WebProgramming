@@ -1,22 +1,20 @@
--- db/01_init_schema.sql
 CREATE DATABASE IF NOT EXISTS siheung_ai_notice
     DEFAULT CHARACTER SET utf8mb4
     DEFAULT COLLATE utf8mb4_unicode_ci;
 
 USE siheung_ai_notice;
 
--- 1. 시흥시 공고 테이블 (경기공공데이터 원본 + AI 공통 요약)
+-- 1. 시흥시 공공서비스(공고) 테이블 (PublServcList 명세서 완벽 반영)
 CREATE TABLE IF NOT EXISTS notices (
-    notice_id VARCHAR(100) NOT NULL COMMENT '공공데이터 공고 고유식별자',
-    title VARCHAR(255) NOT NULL COMMENT '공고 제목',
-    dept VARCHAR(100) NULL COMMENT '담당 부서명',
-    posted_date DATE NULL COMMENT '게시일 (YYYY-MM-DD)',
-    deadline DATE NULL COMMENT '마감일 (YYYY-MM-DD)',
-    url VARCHAR(500) NULL COMMENT '시흥시청 공고 원문 URL',
-    raw_content MEDIUMTEXT NULL COMMENT '공공데이터 원본 본문',
-    clean_content TEXT NULL COMMENT 'HTML 제거 및 1500자 제한 본문 (AI 입력용)',
+    notice_id VARCHAR(100) NOT NULL COMMENT '공공서비스아이디 (PUBL_SERVC_ID)',
+    title VARCHAR(255) NOT NULL COMMENT '공공서비스제목 (PUBL_SERVC_TITLE)',
+    dept VARCHAR(100) NULL COMMENT '공공서비스소관기관명 (PUBL_SERVC_JURSDCTN_INST_NM)',
+    posted_date VARCHAR(20) NULL COMMENT '최종수정일자 (LAST_UPD_DE)',
+    support_type VARCHAR(255) NULL COMMENT '지원형태내역 (SPORT_FORM_DTLS)',
+    url VARCHAR(500) NULL COMMENT '공공서비스상세URL (PUBL_SERVC_DETAIL_URL)',
+    clean_content TEXT NULL COMMENT '공공서비스목적상세내용 (PUBL_SERVC_PURPS_DTCONT)',
     
-    -- AI 1차 분석 결과 (추후 AI 연동 시 업데이트될 컬럼)
+    -- AI 1차 분석 결과 컬럼
     ai_category VARCHAR(50) NULL COMMENT 'AI 분류 카테고리',
     ai_summary TEXT NULL COMMENT 'AI 3줄 요약',
     ai_tags JSON NULL COMMENT 'AI 추출 핵심 해시태그 배열',
@@ -24,9 +22,7 @@ CREATE TABLE IF NOT EXISTS notices (
     
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (notice_id),
-    INDEX idx_notices_posted (posted_date DESC),
-    INDEX idx_notices_ai_proc (is_ai_processed)
+    PRIMARY KEY (notice_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 2. 익명 행동 컨텍스트 테이블 (Zero-PII)
