@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>실시간 MySQL DB 연동 비주얼라이저</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; }
+        .db-window { background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #cbd5e1; }
+    </style>
+</head>
+<body class="p-6 text-slate-800">
+
+    <div class="max-w-[1440px] mx-auto space-y-5">
+        
+        <!-- 1. 상단 헤더 & 실시간 DB 동기화 버튼 -->
+        <div class="flex justify-between items-center bg-slate-900 text-white p-5 rounded-2xl shadow-lg">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span id="conn-badge" class="bg-amber-500 text-slate-950 text-xs font-extrabold px-2.5 py-0.5 rounded-full">⏳ DB 연결 확인 중...</span>
+                    <span class="text-xs text-slate-400 font-mono">jdbc:mysql://127.0.0.1:3306/siheung_ai_notice (Table: notices)</span>
+                </div>
+                <h1 class="text-xl font-bold mt-1.5">시흥 쏙쏙 — MySQL 실제 적재 데이터 & AI 필터 분류 라이브 뷰어</h1>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="runAiClassify()" id="btn-classify" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow transition">
+                    🤖 DB 전체 AI 자동분류 실행 (/classify)
+                </button>
+                <button onclick="runOpenApiSync()" id="btn-sync" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow transition">
+                    🔄 공공데이터 재수집 (/sync)
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. 실시간 8대 분야 DB 건수 요약 카드 (클릭 시 실제 DB 필터링 쿼리 실행!) -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-xs font-bold text-slate-600">📊 DB 내 AI 카테고리별 실시간 적재 건수 (카드를 클릭하면 해당 카테고리 Row만 조회합니다)</span>
+                <span id="sql-preview" class="text-xs font-mono bg-slate-100 text-blue-700 px-3 py-1 rounded font-semibold">
+                    SELECT * FROM notices;
+                </span>
+            </div>
+            <div id="category-cards" class="grid grid-cols-9 gap-2 text-center">
+                <!-- DB에서 /api/notices/counts 를 불러와 자동으로 채워짐 -->
+            </div>
+        </div>
+
+        <!-- 3. 프론트엔드 4대 필터 실시간 테스트 바 -->
+        <div class="flex flex-wrap gap-3 items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-xs">
+            <span class="font-bold text-slate-700 mr-2">🔍 DB 실시간 필터 조회:</span>
+            
+            <label class="flex items-center gap-1.5">
+                <span class="text-slate-500 font-semibold">👤 나이:</span>
+                <select id="filter-age" onchange="loadFromRealDb()" class="border border-slate-300 rounded-lg px-2.5 py-1.5 font-semibold">
+                    <option value="전체">전체</option>
+                    <option value="청년">청년</option>
+                    <option value="어르신">어르신</option>
+                    <option value="영유아·아동">영유아·아동</option>
+                </select>
+            </label>
+
+            <label class="flex items-center gap-1.5">
+                <span class="text-slate-500 font-semibold">🌐 국적/대상:</span>
+                <select id="filter-nat" onchange="loadFromRealDb()" class="border border-slate-300 rounded-lg px-2.5 py-1.5 font-semibold">
+                    <option value="전체">전체</option>
+                    <option value="외국인">외국인</option>
+                    <option value="다문화">다문화</option>
+                </select>
+            </label>
+
+            <label class="flex items-center gap-1.5">
+                <span class="text-slate-500 font-semibold">☷ 8대 분야:</span>
+                <select id="filter-cat" onchange="loadFromRealDb()" class="border border-slate-300 rounded-lg px-2.5 py-1.5 font-semibold">
+                    <option value="전체">전체</option>
+                    <option value="청년">청년</option>
+                    <option value="외국인">외국인</option>
+                    <option value="다문화">다문화</option>
+                    <option value="소상공인">소상공인</option>
+                    <option value="가족">가족</option>
+                    <option value="어르신">어르신</option>
+                    <option value="교육">교육</option>
+                    <option value="문화·행사">문화·행사</option>
+                </select>
+            </label>
+
+            <label class="flex items-center gap-1.5">
+                <span class="text-slate-500 font-semibold">📍 지역:</span>
+                <select id="filter-reg" onchange="loadFromRealDb()" class="border border-slate-300 rounded-lg px-2.5 py-1.5 font-semibold">
+                    <option value="전체">전체</option>
+                    <option value="시흥시">시흥시 직접</option>
+                    <option value="경기도 전체">경기도 광역</option>
+                </select>
+            </label>
+
+            <input type="text" id="filter-keyword" onkeyup="if(event.key==='Enter') loadFromRealDb()" placeholder="제목/내용/태그 검색어 입력..." class="border border-slate-300 rounded-lg px-3 py-1.5 w-48">
+            <button onclick="loadFromRealDb()" class="bg-slate-800 text-white font-bold px-3.5 py-1.5 rounded-lg">조회</button>
+            <button onclick="resetFilters()" class="text-slate-500 hover:text-slate-800 font-semibold px-2 py-1.5">↻ 초기화</button>
+        </div>
+
+        <!-- 4. 실제 MySQL DB 데이터 그리드 테이블 -->
+        <div class="db-window">
+            <div class="bg-slate-800 text-slate-200 px-5 py-3 flex justify-between items-center text-xs font-mono">
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-red-400 inline-block"></span>
+                    <span class="w-3 h-3 rounded-full bg-amber-400 inline-block"></span>
+                    <span class="w-3 h-3 rounded-full bg-emerald-400 inline-block"></span>
+                    <span class="ml-3 text-slate-300 font-semibold">LIVE DATA — siheung_ai_notice.notices</span>
+                </div>
+                <span id="row-count-text" class="text-emerald-400 font-bold">데이터 로딩 중...</span>
+            </div>
+
+            <div class="overflow-x-auto max-h-[540px] overflow-y-auto">
+                <table class="w-full text-xs text-left border-collapse">
+                    <thead class="sticky top-0 z-10 shadow-sm">
+                        <tr class="border-b border-slate-300 text-[11px] font-bold text-center">
+                            <th colspan="5" class="bg-slate-100 text-slate-700 py-1.5 border-r border-slate-300">
+                                📥 경기공공데이터 OpenAPI 수집 원본 컬럼
+                            </th>
+                            <th colspan="4" class="bg-blue-100 text-blue-900 py-1.5 border-r border-blue-200">
+                                🎯 프론트엔드 4대 필터 매핑 컬럼 (AI 분류)
+                            </th>
+                            <th colspan="3" class="bg-purple-100 text-purple-900 py-1.5">
+                                🤖 AI 요약 및 해시태그 컬럼
+                            </th>
+                        </tr>
+                        <tr class="border-b-2 border-slate-300 font-mono text-[11px] bg-slate-50">
+                            <th class="py-2.5 px-3">🔑 notice_id</th>
+                            <th class="py-2.5 px-3">title</th>
+                            <th class="py-2.5 px-3">dept</th>
+                            <th class="py-2.5 px-3">posted_date</th>
+                            <th class="py-2.5 px-3 border-r border-slate-300">support_type</th>
+                            <th class="py-2.5 px-3 bg-blue-50 text-blue-900">target_age</th>
+                            <th class="py-2.5 px-3 bg-blue-50 text-blue-900">target_nationality</th>
+                            <th class="py-2.5 px-3 bg-blue-50 text-blue-900">ai_category</th>
+                            <th class="py-2.5 px-3 bg-blue-50 text-blue-900 border-r border-blue-200">region</th>
+                            <th class="py-2.5 px-3 bg-purple-50 text-purple-900">ai_summary</th>
+                            <th class="py-2.5 px-3 bg-purple-50 text-purple-900">ai_tags</th>
+                            <th class="py-2.5 px-3 bg-purple-50 text-purple-900 text-center">url</th>
+                        </tr>
+                    </thead>
+                    <tbody id="db-tbody" class="divide-y divide-slate-200 bg-white">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const categoryColors = {
+            "청년": "bg-blue-100 text-blue-800 border-blue-300",
+            "외국인": "bg-emerald-100 text-emerald-800 border-emerald-300",
+            "다문화": "bg-teal-100 text-teal-800 border-teal-300",
+            "소상공인": "bg-amber-100 text-amber-800 border-amber-300",
+            "어르신": "bg-orange-100 text-orange-800 border-orange-300",
+            "교육": "bg-indigo-100 text-indigo-800 border-indigo-300",
+            "가족": "bg-pink-100 text-pink-800 border-pink-300",
+            "문화·행사": "bg-purple-100 text-purple-800 border-purple-300"
+        };
+
+        // 1. 실제 DB에서 카테고리별 건수(/api/notices/counts) 불러와 상단 카드 생성
+        async function loadCategoryCounts() {
+            try {
+                const res = await fetch('/api/notices/counts');
+                const counts = await res.json();
+                const container = document.getElementById('category-cards');
+                container.innerHTML = '';
+
+                const order = ["전체", "청년", "외국인", "다문화", "소상공인", "가족", "어르신", "교육", "문화·행사"];
+                order.forEach(cat => {
+                    const count = counts[cat] ?? 0;
+                    const btn = document.createElement('button');
+                    btn.className = "p-2.5 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 transition flex flex-col items-center";
+                    btn.onclick = () => {
+                        document.getElementById('filter-cat').value = cat;
+                        loadFromRealDb();
+                    };
+                    btn.innerHTML = `
+                        <span class="text-xs font-bold text-slate-700">${cat}</span>
+                        <span class="text-lg font-extrabold text-blue-600 mt-0.5">${count}<span class="text-[11px] font-normal text-slate-500">건</span></span>
+                    `;
+                    container.appendChild(btn);
+                });
+            } catch (e) {
+                console.error("카테고리 카운트 로드 실패:", e);
+            }
+        }
+
+        // 2. 실제 MySQL DB에서 필터 조건에 맞는 Row 목록(/api/notices) 불러오기
+        async function loadFromRealDb() {
+            const age = document.getElementById('filter-age').value;
+            const nat = document.getElementById('filter-nat').value;
+            const cat = document.getElementById('filter-cat').value;
+            const reg = document.getElementById('filter-reg').value;
+            const kw = document.getElementById('filter-keyword').value.trim();
+
+            const params = new URLSearchParams({ age, nationality: nat, category: cat, region: reg, keyword: kw });
+            document.getElementById('sql-preview').innerText = `GET /api/notices?${params.toString()}`;
+
+            try {
+                const res = await fetch(`/api/notices?${params.toString()}`);
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                const rows = await res.json();
+
+                document.getElementById('conn-badge').className = "bg-emerald-400 text-slate-950 text-xs font-extrabold px-2.5 py-0.5 rounded-full";
+                document.getElementById('conn-badge').innerText = "🟢 Live MySQL DB 연결됨";
+                document.getElementById('row-count-text').innerText = `● 실제 DB에서 총 ${rows.length}건 조회됨`;
+
+                const tbody = document.getElementById('db-tbody');
+                tbody.innerHTML = '';
+
+                if (rows.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="12" class="text-center py-12 text-slate-500 font-bold">
+                        조회된 데이터가 없습니다. 우측 상단의 [🤖 DB 전체 AI 자동분류 실행] 또는 [🔄 공공데이터 재수집] 버튼을 눌러주세요!
+                    </td></tr>`;
+                    return;
+                }
+
+                rows.forEach(r => {
+                    const catVal = r.aiCategory || '미분류';
+                    const catStyle = categoryColors[catVal] || "bg-slate-100 text-slate-700 border-slate-300";
+                    const regVal = r.region || '경기도 전체';
+                    const regStyle = regVal.includes('시흥') ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-700";
+
+                    const tagsHtml = (r.aiTags ? r.aiTags.split(',') : []).map(t =>
+                        `<span class="inline-block bg-purple-50 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded text-[10px] mr-1 mb-1">${t}</span>`
+                    ).join('');
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-blue-50/30 transition";
+                    tr.innerHTML = `
+                        <td class="py-2.5 px-3 font-mono font-bold text-slate-700 whitespace-nowrap">${r.noticeId}</td>
+                        <td class="py-2.5 px-3 font-bold text-slate-900 min-w-[200px] max-w-[260px]">${r.title}</td>
+                        <td class="py-2.5 px-3 text-slate-600 whitespace-nowrap">${r.dept || '-'}</td>
+                        <td class="py-2.5 px-3 font-mono text-slate-600 whitespace-nowrap">${r.postedDate || '-'}</td>
+                        <td class="py-2.5 px-3 text-slate-600 border-r border-slate-300 whitespace-nowrap">${r.supportType || '-'}</td>
+
+                        <td class="py-2.5 px-3 bg-blue-50/20 font-semibold whitespace-nowrap">${r.targetAge || '전체'}</td>
+                        <td class="py-2.5 px-3 bg-blue-50/20 font-semibold whitespace-nowrap">${r.targetNationality || '전체'}</td>
+                        <td class="py-2.5 px-3 bg-blue-50/20 whitespace-nowrap">
+                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${catStyle}">${catVal}</span>
+                        </td>
+                        <td class="py-2.5 px-3 bg-blue-50/20 border-r border-blue-200 whitespace-nowrap">
+                            <span class="px-2 py-0.5 rounded text-[11px] font-bold ${regStyle}">${regVal}</span>
+                        </td>
+
+                        <td class="py-2.5 px-3 bg-purple-50/10 text-slate-600 min-w-[260px] max-w-[340px] leading-snug">${r.aiSummary || r.cleanContent || '-'}</td>
+                        <td class="py-2.5 px-3 bg-purple-50/10 min-w-[140px]">${tagsHtml || '-'}</td>
+                        <td class="py-2.5 px-3 bg-purple-50/10 text-center whitespace-nowrap">
+                            ${r.url ? `<a href="${r.url}" target="_blank" class="text-blue-600 hover:underline font-bold">원문↗</a>` : '-'}
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch (err) {
+                document.getElementById('conn-badge').className = "bg-red-500 text-white text-xs font-extrabold px-2.5 py-0.5 rounded-full";
+                document.getElementById('conn-badge').innerText = "❌ 서버 연결 안 됨 (http://localhost:8080/db_live.html 로 접속하세요!)";
+            }
+        }
+
+        // 3. 화면에서 버튼 클릭만으로 AI 자동 분류(/api/notices/classify) 실행하기
+        async function runAiClassify() {
+            const btn = document.getElementById('btn-classify');
+            btn.innerText = "⏳ AI 분류 처리 중...";
+            btn.disabled = true;
+            await fetch('/api/notices/classify');
+            await loadCategoryCounts();
+            await loadFromRealDb();
+            btn.innerText = "🤖 DB 전체 AI 자동분류 실행 (/classify)";
+            btn.disabled = false;
+        }
+
+        // 4. 화면에서 버튼 클릭만으로 공공데이터 재수집(/api/notices/sync) 실행하기
+        async function runOpenApiSync() {
+            const btn = document.getElementById('btn-sync');
+            btn.innerText = "⏳ OpenAPI 수집 중...";
+            btn.disabled = true;
+            await fetch('/api/notices/sync');
+            await loadCategoryCounts();
+            await loadFromRealDb();
+            btn.innerText = "🔄 공공데이터 재수집 (/sync)";
+            btn.disabled = false;
+        }
+
+        function resetFilters() {
+            document.getElementById('filter-age').value = '전체';
+            document.getElementById('filter-nat').value = '전체';
+            document.getElementById('filter-cat').value = '전체';
+            document.getElementById('filter-reg').value = '전체';
+            document.getElementById('filter-keyword').value = '';
+            loadFromRealDb();
+        }
+
+        // 페이지가 열리자마자 실제 DB 데이터 즉시 로드!
+        window.onload = async () => {
+            await loadCategoryCounts();
+            await loadFromRealDb();
+        };
+    </script>
+</body>
+</html>
