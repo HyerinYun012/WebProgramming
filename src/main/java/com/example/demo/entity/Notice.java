@@ -2,6 +2,7 @@ package com.example.demo.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Table(name = "notices")
@@ -68,6 +69,32 @@ public class Notice {
         this.cleanContent = cleanContent;
         this.isAiProcessed = isAiProcessed;
         this.createdAt = LocalDateTime.now();
+    }
+
+    /**
+     * 공공데이터 API에서 오는 원본 필드만 갱신한다. (AI 분석 결과 컬럼은 건드리지 않음)
+     * AI 분석에 쓰이는 내용(제목/기관/지원형태/본문)이 바뀌었으면 재분석 대상으로 표시한다.
+     *
+     * @return AI 분석 대상 내용이 바뀌었으면 true
+     */
+    public boolean updateSourceFields(String title, String dept, String postedDate,
+                                      String supportType, String url, String cleanContent) {
+        boolean contentChanged = !Objects.equals(this.title, title)
+                || !Objects.equals(this.dept, dept)
+                || !Objects.equals(this.supportType, supportType)
+                || !Objects.equals(this.cleanContent, cleanContent);
+
+        this.title = title;
+        this.dept = dept;
+        this.postedDate = postedDate;
+        this.supportType = supportType;
+        this.url = url;
+        this.cleanContent = cleanContent;
+
+        if (contentChanged) {
+            this.isAiProcessed = false;
+        }
+        return contentChanged;
     }
 
     // Getter & Setter

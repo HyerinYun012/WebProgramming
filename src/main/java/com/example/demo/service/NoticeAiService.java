@@ -3,72 +3,78 @@ package com.example.demo.service;
 import com.example.demo.entity.Notice;
 import com.example.demo.repository.NoticeRepository;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.json.BasicJsonParser;
-import org.springframework.boot.json.JsonParser;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
+import tools.jackson.databind.JsonNode;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 @Service
 public class NoticeAiService {
 
+    private static final Set<String> AGES = Set.of("전체", "청년", "어르신", "영유아·아동", "중장년");
+    private static final Set<String> NATIONALITIES = Set.of("전체", "외국인", "다문화");
+    private static final Set<String> CATEGORIES = Set.of("청년", "외국인", "다문화", "소상공인", "가족", "어르신", "교육", "문화·행사");
+    private static final Set<String> REGIONS = Set.of("시흥시", "경기도 전체");
+
     private final NoticeRepository noticeRepository;
-    private final JsonParser jsonParser = new BasicJsonParser();
+    private final GeminiClient geminiClient;
 
-    @Value("${gemini.api.key:NONE}")
-    private String geminiApiKey;
+    /** 한 번 실행할 때 Gemini를 호출하는 최대 공고 수 (무료 할당량 보호) */
+    @Value("${gemini.classify.batch-size:10}")
+    private int geminiBatchSize;
 
-    public NoticeAiService(NoticeRepository noticeRepository) {
+    public NoticeAiService(NoticeRepository noticeRepository, GeminiClient geminiClient) {
         this.noticeRepository = noticeRepository;
+        this.geminiClient = geminiClient;
     }
 
     /**
-     * DB의 모든 공고를 프론트엔드 필터(나이, 국적, 8대 분야, 지역)에 맞게 일괄 AI 분류
+     * 아직 Gemini 분석이 끝나지 않은 공고(is_ai_processed = false)만 분류한다.
+     * - Gemini 분석에 성공한 공고: is_ai_processed = true 로 저장 → 이후 실행에서는 건드리지 않음
+     * - 나머지 공고: 키워드 분류기로 임시 분류 (is_ai_processed = false 유지 → 다음 실행에서 Gemini 분석 대상)
+     *
+     * 트랜잭션을 걸지 않는다: Gemini HTTP 호출 동안 DB 트랜잭션을 붙잡지 않고,
+     * 중간에 실패해도 이미 저장한 Gemini 결과는 남도록 공고마다 바로 저장한다.
+     *
+     * @return 이번에 분류한 공고 수 (Gemini + 키워드 분류)
      */
-    @Transactional
     public int classifyAllNotices() {
-        List<Notice> notices = noticeRepository.findAll();
-        int processedCount = 0;
+        List<Notice> pending = noticeRepository.findAll().stream()
+                .filter(n -> !n.isAiProcessed())
+                .toList();
 
-        boolean useRealGemini = geminiApiKey != null && !geminiApiKey.trim().isEmpty() && !geminiApiKey.equals("NONE");
+        int geminiAttempts = 0;
+        int geminiSuccess = 0;
+        List<Notice> ruleClassified = new ArrayList<>();
 
-        for (Notice notice : notices) {
-            // 1. 실제 Gemini API 키가 설정된 경우 상위 10건은 실시간 LLM 호출 (속도 및 무료 할당량 보호)
-            if (useRealGemini && processedCount < 10 && !notice.isAiProcessed()) {
-                boolean success = callGeminiApi(notice);
-                if (success) {
-                    processedCount++;
+        for (Notice notice : pending) {
+            // 1. Gemini 키가 있으면 배치 크기만큼 실제 LLM 호출 (실패 건도 시도 횟수에 포함해 할당량 낭비 방지)
+            if (geminiClient.isEnabled() && geminiAttempts < geminiBatchSize) {
+                geminiAttempts++;
+                if (classifyWithGemini(notice)) {
+                    noticeRepository.save(notice);
+                    geminiSuccess++;
                     continue;
                 }
             }
 
-            // 2. 스마트 문맥 분류 엔진 (프론트엔드 8대 분야 & 4대 필터 완벽 매핑)
+            // 2. 스마트 문맥 분류 엔진으로 임시 분류 (프론트엔드 8대 분야 & 4대 필터 매핑)
             applySmartClassification(notice);
-            processedCount++;
+            ruleClassified.add(notice);
         }
 
-        noticeRepository.saveAll(notices);
-        System.out.println("🤖 총 " + processedCount + "건의 공고 AI 카테고리 및 필터 태깅 완료!");
-        return processedCount;
+        noticeRepository.saveAll(ruleClassified);
+        System.out.println("🤖 공고 분류 완료: Gemini " + geminiSuccess + "건, 키워드 임시 분류 " + ruleClassified.size() + "건");
+        return geminiSuccess + ruleClassified.size();
     }
 
     /**
-     * Google Gemini 2.5 Flash REST API 직접 호출
+     * Gemini로 공고를 분석해 필터/카테고리/요약/태그를 채운다. 실패하면 false (공고는 변경하지 않음)
      */
-    @SuppressWarnings("unchecked")
-    private boolean callGeminiApi(Notice notice) {
+    private boolean classifyWithGemini(Notice notice) {
         try {
-            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + geminiApiKey.trim();
-
             String prompt = "다음 공공서비스 공고를 분석해서 프론트엔드 필터용 JSON으로만 응답해줘.\n"
                     + "제목: " + notice.getTitle() + "\n"
                     + "소관기관: " + notice.getDept() + "\n"
@@ -83,43 +89,37 @@ public class NoticeAiService {
                     + "  \"aiTags\": \"#해시태그1,#해시태그2,#해시태그3\"\n"
                     + "}";
 
-            String requestBody = "{\"contents\":[{\"parts\":[{\"text\":\"" + escapeJson(prompt) + "\"}]}],"
-                    + "\"generationConfig\":{\"responseMimeType\":\"application/json\",\"temperature\":0.1}}";
+            JsonNode result = geminiClient.generateJson(prompt, 0.1);
 
-            RestTemplate restTemplate = new RestTemplate();
-            restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
-            String response = restTemplate.postForObject(url, entity, String.class);
-
-            Map<String, Object> resMap = jsonParser.parseMap(response);
-            List<Map<String, Object>> candidates = (List<Map<String, Object>>) resMap.get("candidates");
-            Map<String, Object> content = (Map<String, Object>) candidates.get(0).get("content");
-            List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
-            String aiJsonText = String.valueOf(parts.get(0).get("text"));
-
-            Map<String, Object> result = jsonParser.parseMap(aiJsonText);
-
-            notice.setTargetAge(String.valueOf(result.getOrDefault("targetAge", "전체")));
-            notice.setTargetNationality(String.valueOf(result.getOrDefault("targetNationality", "전체")));
-            notice.setAiCategory(String.valueOf(result.getOrDefault("aiCategory", "가족")));
-            notice.setRegion(String.valueOf(result.getOrDefault("region", "시흥시")));
-            notice.setAiSummary(String.valueOf(result.getOrDefault("aiSummary", notice.getCleanContent())));
-            notice.setAiTags(String.valueOf(result.getOrDefault("aiTags", "#시흥시,#맞춤지원")));
+            // 허용되지 않은 값이 오면 필터가 깨지므로 기본값으로 대체
+            notice.setTargetAge(allowed(result, "targetAge", AGES, "전체"));
+            notice.setTargetNationality(allowed(result, "targetNationality", NATIONALITIES, "전체"));
+            notice.setAiCategory(allowed(result, "aiCategory", CATEGORIES, "가족"));
+            notice.setRegion(allowed(result, "region", REGIONS, "시흥시"));
+            notice.setAiSummary(text(result, "aiSummary", notice.getCleanContent()));
+            notice.setAiTags(text(result, "aiTags", "#시흥시,#맞춤지원"));
             notice.setAiProcessed(true);
             return true;
 
         } catch (Exception e) {
-            System.out.println("ℹ️ Gemini API 대신 내장 스마트 분류기로 처리합니다: " + e.getMessage());
+            System.out.println("ℹ️ Gemini 분석 실패 [" + notice.getNoticeId() + "], 키워드 분류기로 처리합니다: " + e.getMessage());
             return false;
         }
     }
 
+    private String text(JsonNode node, String field, String defaultValue) {
+        String value = node.path(field).asString("").trim();
+        return value.isEmpty() ? defaultValue : value;
+    }
+
+    private String allowed(JsonNode node, String field, Set<String> allowedValues, String defaultValue) {
+        String value = text(node, field, defaultValue);
+        return allowedValues.contains(value) ? value : defaultValue;
+    }
+
     /**
-     * 프론트엔드 화면의 8대 아이콘 및 4대 드롭다운 필터에 100% 매칭시키는 스마트 분석기
+     * 프론트엔드 화면의 8대 아이콘 및 4대 드롭다운 필터에 매칭시키는 키워드 기반 임시 분류기.
+     * is_ai_processed 는 바꾸지 않는다 (Gemini 분석 완료 여부만 나타내도록).
      */
     private void applySmartClassification(Notice notice) {
         String text = (notice.getTitle() + " " + notice.getCleanContent() + " " + notice.getDept()).toLowerCase();
@@ -159,7 +159,7 @@ public class NoticeAiService {
             notice.setTargetNationality("전체");
         }
 
-        // 4. 프론트엔드 메인 화면 8대 분야 아이콘(aiCategory) 정확히 매핑!
+        // 4. 프론트엔드 메인 화면 8대 분야 아이콘(aiCategory) 매핑
         // [청년, 외국인, 다문화, 소상공인, 가족, 어르신, 교육, 문화·행사]
         if ("외국인".equals(notice.getTargetNationality())) {
             notice.setAiCategory("외국인");
@@ -200,11 +200,5 @@ public class NoticeAiService {
         } else {
             notice.setAiSummary(content);
         }
-
-        notice.setAiProcessed(true);
-    }
-
-    private String escapeJson(String str) {
-        return str.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "");
     }
 }

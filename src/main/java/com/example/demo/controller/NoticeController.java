@@ -4,6 +4,7 @@ import com.example.demo.entity.Notice;
 import com.example.demo.repository.NoticeRepository;
 import com.example.demo.service.NoticeAiService;
 import com.example.demo.service.NoticeSyncService;
+import com.example.demo.service.NoticeTranslationService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -16,27 +17,47 @@ public class NoticeController {
 
 	private final NoticeSyncService noticeSyncService;
 	private final NoticeAiService noticeAiService;
+	private final NoticeTranslationService noticeTranslationService;
 	private final NoticeRepository noticeRepository;
 
 	public NoticeController(NoticeSyncService noticeSyncService, NoticeAiService noticeAiService,
-			NoticeRepository noticeRepository) {
+			NoticeTranslationService noticeTranslationService, NoticeRepository noticeRepository) {
 		this.noticeSyncService = noticeSyncService;
 		this.noticeAiService = noticeAiService;
+		this.noticeTranslationService = noticeTranslationService;
 		this.noticeRepository = noticeRepository;
 	}
 
-	// 1. 공공데이터 수집 + AI 자동 분류를 한 번에 실행!
+	// 1. 공공데이터 수집 → AI 자동 분류 → 외국어 번역을 한 번에 실행!
 	// 호출 주소: http://localhost:8080/api/notices/sync
 	@GetMapping("/sync")
 	public Map<String, Object> syncAndClassifyNotices() {
 		try {
 			int savedCount = noticeSyncService.fetchAndSaveSiheungNotices();
 			int classifiedCount = noticeAiService.classifyAllNotices();
+
+			// 번역이 실패해도 수집/분류 결과는 이미 저장됐으므로 전체를 실패로 처리하지 않음
+			Object translatedCount;
+			try {
+				translatedCount = noticeTranslationService.translatePendingNotices();
+			} catch (Exception e) {
+				translatedCount = "ERROR: " + e.getMessage();
+			}
+
 			return Map.of("status", "SUCCESS", "saved_count", savedCount, "ai_classified_count", classifiedCount,
-					"message", "공공데이터 수집 및 프론트엔드 필터 기준 AI 자동 분류 완료!");
+					"translated_count", translatedCount,
+					"message", "공공데이터 수집, AI 자동 분류, 외국어 번역 완료!");
 		} catch (Exception e) {
-			return Map.of("status", "ERROR", "error_detail", e.getMessage());
+			return Map.of("status", "ERROR", "error_detail", String.valueOf(e.getMessage()));
 		}
+	}
+
+	// 1-1. 이미 분석된 공고의 번역만 실행할 때 쓰는 주소 (한 번에 app.translation.batch-size 건씩)
+	// 호출 주소: http://localhost:8080/api/notices/translate
+	@GetMapping("/translate")
+	public Map<String, Object> translateOnly() {
+		int count = noticeTranslationService.translatePendingNotices();
+		return Map.of("status", "SUCCESS", "translated_count", count);
 	}
 
 	// 2. 이미 DB에 있는 데이터만 빠르게 AI 재분류 실행할 때 쓰는 주소
