@@ -9,7 +9,27 @@
   <script src="assets/app.js"></script>
 </head>
 <body>
+  
+   <!-- 국가별 언어 선택 추가-->
+  <div id="language-selector" style="padding: 12px 24px; text-align: right;">
+    <label for="site-language">언어 선택: </label>
+
+    <select id="site-language" onchange="changeSiteLanguage(this.value)">
+      <option value="ko">🇰🇷 한국어</option>
+      <option value="en">🇺🇸 English</option>
+      <option value="zh-CN">简体中文</option>
+	  <option value="zh-TW">繁體中文</option>
+      <option value="ja">🇯🇵 日本語</option>
+      <option value="vi">🇻🇳 Tiếng Việt</option>
+    </select>
+  </div>
+
   <div class="page" id="root" aria-live="polite"></div>
+  <!-- 언어를 위한 스크립트 translations, language 추가 -->
+  <script src="assets/translations.js"></script>
+  <!-- Google Cloud 자동 번역 결과 불러오기 -->
+<script src="assets/generated-translations.js"></script>
+  <script src="assets/language.js"></script>
   <script src="assets/site.js"></script>
 </body>
 </html>

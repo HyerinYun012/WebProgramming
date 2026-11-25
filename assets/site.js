@@ -19,11 +19,52 @@
   const DEFAULT_RECENT = ['한국어 교육', '소상공인 지원금', '가족 체험 행사'];
   const POPULAR = ['청년 월세', '외국인 통역', '소상공인 지원금', '한국어 교육', '가족 체험', '어르신 디지털', '공공근로', '갯골축제'];
   const STATUS_ORDER = ['all', 'open', 'closing', 'soon', 'closed'];
+  // 필터 검색값 유지 및 번역 키 연결
   const FILTERS = {
-    age: {label:'나이', icon:I.user, options:[['','전체'],['19 ~ 34세','19 ~ 34세'],['35 ~ 64세','35 ~ 64세'],['65세 이상','65세 이상']]},
-    nat: {label:'국적', icon:I.globe, options:[['','전체'],['내국인','내국인'],['외국인','외국인'],['다문화 가족','다문화 가족']]},
-    cat: {label:'카테고리', icon:I.grid, options:[['','전체'],['취업,교육,문화','취업 · 교육 · 문화'],['취업','취업'],['교육','교육'],['문화','문화'],['생활지원','생활지원'],['환경','환경']]},
-    reg: {label:'지역', icon:I.pin, options:[['','전체'],['정왕동','정왕동'],['배곧동','배곧동'],['대야동','대야동'],['장현동','장현동']]}
+      age: {
+          label: 'age',
+          icon: I.user,
+          options: [
+              ['', 'all'],
+              ['19 ~ 34세', 'ageYoung'],
+              ['35 ~ 64세', 'ageAdult'],
+              ['65세 이상', 'ageSenior']
+          ]
+      },
+      nat: {
+          label: 'nationality',
+          icon: I.globe,
+          options: [
+              ['', 'all'],
+              ['내국인', 'domesticResident'],
+              ['외국인', 'foreigner'],
+              ['다문화 가족', 'multiculturalFamily']
+          ]
+      },
+      cat: {
+          label: 'category',
+          icon: I.grid,
+          options: [
+              ['', 'all'],
+              ['취업,교육,문화', 'employmentEducationCulture'],
+              ['취업', 'employment'],
+              ['교육', 'education'],
+              ['문화', 'cultureOnly'],
+              ['생활지원', 'livingSupport'],
+              ['환경', 'environment']
+          ]
+      },
+      reg: {
+          label: 'region',
+          icon: I.pin,
+          options: [
+              ['', 'all'],
+              ['정왕동', 'jeongwang'],
+              ['배곧동', 'baegot'],
+              ['대야동', 'daeya'],
+              ['장현동', 'janghyeon']
+          ]
+      }
   };
 
   const state = {
@@ -77,34 +118,37 @@
     return safeText.replace(new RegExp(pattern, 'gi'), '<mark>$&</mark>');
   }
 
+  // 검색창 및 접근성 안내 문구 다국어 적용
   function renderSearchBox() {
-    const q = escapeHTML(state.draft);
-    return `
-      <div class="search ${state.searchOpen ? 'is-open' : ''}">
-        <form class="search-box interactive-search" id="search-form" role="search">
-          <span class="ic" aria-hidden="true">${I.search}</span>
-          <input id="global-search" name="q" value="${q}" placeholder="관심 있는 지원사업, 행사, 교육을 검색해 보세요" autocomplete="off" aria-label="통합검색" aria-expanded="${state.searchOpen}" aria-controls="search-suggestions">
-          ${state.draft ? `<button class="clear" id="clear-search" type="button" aria-label="검색어 지우기">${I.x}</button>` : ''}
-          <button class="go" type="submit">검색</button>
-        </form>
-        ${state.searchOpen ? renderAutocomplete() : ''}
-      </div>`;
+      const q = escapeHTML(state.draft);
+
+      return `
+        <div class="search ${state.searchOpen ? 'is-open' : ''}">
+          <form class="search-box interactive-search" id="search-form" role="search">
+            <span class="ic" aria-hidden="true">${I.search}</span>
+            <input id="global-search" name="q" value="${q}" placeholder="${escapeHTML(translate('searchPlaceholder'))}" autocomplete="off" aria-label="${escapeHTML(translate('integratedSearch'))}" aria-expanded="${state.searchOpen}" aria-controls="search-suggestions">
+            ${state.draft ? `<button class="clear" id="clear-search" type="button" aria-label="${escapeHTML(translate('clearSearch'))}">${I.x}</button>` : ''}
+            <button class="go" type="submit">${escapeHTML(translate('search'))}</button>
+          </form>
+          ${state.searchOpen ? renderAutocomplete() : ''}
+        </div>`;
   }
 
+  // 최근 검색어 및 자동완성 고정 문구 다국어 적용
   function renderAutocomplete() {
     if (!state.draft.trim()) {
-      return `<div class="ac" id="search-suggestions" role="dialog" aria-label="최근 검색어와 인기 검색어">
-        <div class="ac-sec">
-          <div class="ac-title">최근 검색어 <button type="button" id="clear-recent">전체 삭제</button></div>
+		return `<div class="ac" id="search-suggestions" role="dialog" aria-label="${escapeHTML(translate('recentAndPopularSearches'))}">
+		      <div class="ac-sec">
+		        <div class="ac-title">${translate('recentSearches')} <button type="button" id="clear-recent">${translate('clearAll')}</button></div>
           ${recent.length ? recent.map(function (keyword) {
             return `<div class="ac-row recent-row">
               <button class="ac-row-main" type="button" data-search-value="${encoded(keyword)}"><span class="row-icon">${I.clock}</span><span>${escapeHTML(keyword)}</span></button>
-              <button class="row-remove" type="button" data-remove-recent="${encoded(keyword)}" aria-label="${escapeHTML(keyword)} 삭제">${I.x}</button>
+              <button class="row-remove" type="button" data-remove-recent="${encoded(keyword)}" aria-label="${escapeHTML(keyword)} ${escapeHTML(translate('delete'))}">${I.x}</button>
             </div>`;
-          }).join('') : '<div class="ac-empty">최근 검색어가 없습니다.</div>'}
+          }).join('') : `<div class="ac-empty">${escapeHTML(translate('noRecentSearches'))}</div>`}
         </div>
         <div class="ac-sec">
-          <div class="ac-title">지금 많이 찾는 검색어</div>
+          <div class="ac-title">${translate('popularSearches')}</div>
           <div class="popular-grid">
             ${POPULAR.map(function (keyword, index) {
               return `<button class="ac-row" type="button" data-search-value="${encoded(keyword)}"><b class="rank ${index < 3 ? 'top' : ''}">${index + 1}</b><span>${escapeHTML(keyword)}</span>${index < 3 ? `<span class="meta trend">${I.trend}</span>` : ''}</button>`;
@@ -117,22 +161,22 @@
     const keyword = state.draft.trim();
     const suggestions = buildSuggestions(keyword);
     const direct = ALL_RESULTS.filter(function (item) { return itemMatches(item, keyword); }).slice(0, 2);
-    return `<div class="ac" id="search-suggestions" role="listbox" aria-label="추천 검색어">
+    return `<div class="ac" id="search-suggestions" role="listbox" aria-label="${escapeHTML(translate('recommendedSearches'))}">
       <div class="ac-sec">
-        <div class="ac-title">추천 검색어</div>
+       <div class="ac-title">${translate('recommendedSearches')}</div>
         ${suggestions.map(function (item, index) {
           return `<button class="ac-row ${index === 0 ? 'on' : ''}" type="button" data-search-value="${encoded(item.label)}" role="option" aria-selected="${index === 0}">
-            <span class="row-icon">${I.search.replace(/24/g, '18')}</span><span>${highlight(item.label, keyword)}</span><span class="meta">${item.count}건</span>
+            <span class="row-icon">${I.search.replace(/24/g, '18')}</span><span>${highlight(item.label, keyword)}</span><span class="meta">${item.count}${translate('countUnit')}</span>
           </button>`;
         }).join('')}
       </div>
       ${direct.length ? `<div class="ac-sec">
-        <div class="ac-title">바로가기 공고</div>
+        <div class="ac-title">${translate('directAnnouncements')}</div>
         ${direct.map(function (item) {
           return `<button class="ac-row" type="button" data-search-value="${encoded(keyword)}">${C.status(item.status)}<span>${highlight(item.title, keyword)}</span><span class="meta">${escapeHTML(item.dday)}</span></button>`;
         }).join('')}
       </div>` : ''}
-      <div class="ac-help"><span>↑↓ 키로 이동 · Enter로 검색</span><button type="button" id="close-autocomplete">자동완성 닫기</button></div>
+      <div class="ac-help"><span>${translate('autocompleteHelp')}</span><button type="button" id="close-autocomplete">${translate('closeAutocomplete')}</button></div>
     </div>`;
   }
 
@@ -155,47 +199,130 @@
   function renderHero(compact) {
     return `<section class="hero ${compact ? 'compact' : 'tall'} ${state.searchOpen ? 'search-active' : ''}">${C.heroDeco()}
       <div class="hero-inner">
-        <h1><em>시흥시</em>의 다양한 공공사업과 소식을 찾아보세요.</h1>
-        <p class="sub">시민을 위한 지원사업, 문화행사, 교육프로그램 등 유용한 정보를 한 번에 검색할 수 있습니다.</p>
+	  <!-- 언어별 문장 어순 및 도시명 강조 디자인 유지 -->
+	  <h1>${escapeHTML(translate('heroTitle', {city: '{city}'})).replace('{city}', function () {
+	      return `<em>${escapeHTML(translate('cityName'))}</em>`;
+	  })}</h1>
+	  <p class="sub">${translate('heroDescription')}</p>
         ${renderSearchBox()}
-        ${compact ? '' : `<div class="hot-keywords"><span class="lbl">인기 검색어</span>${POPULAR.slice(0, 5).map(function (keyword) { return `<button class="kw" type="button" data-search-value="${encoded(keyword)}"># ${escapeHTML(keyword)}</button>`; }).join('')}</div>`}
+        ${compact ? '' : `<div class="hot-keywords"><span class="lbl">${translate('popularSearches')}</span>${POPULAR.slice(0, 5).map(function (keyword) { return `<button class="kw" type="button" data-search-value="${encoded(keyword)}"># ${escapeHTML(keyword)}</button>`; }).join('')}</div>`}
       </div>
     </section>`;
   }
 
+  // 검색 필터 화면 다국어 적용
   function renderFilterBar() {
-    return `<form class="filterbar filterbar-interactive" id="filter-form" aria-label="검색 결과 필터">
-      ${Object.keys(FILTERS).map(function (key) {
-        const filter = FILTERS[key];
-        const value = state.filters[key];
-        return `<label class="fb-item" for="filter-${key}">
-          <span class="fb-label">${filter.icon}${filter.label}</span>
-          <span class="select filter-select ${value ? 'active' : ''}">
-            <select id="filter-${key}" data-filter="${key}" aria-label="${filter.label} 필터">
-              ${filter.options.map(function (option) { return `<option value="${escapeHTML(option[0])}" ${option[0] === value ? 'selected' : ''}>${escapeHTML(option[1])}</option>`; }).join('')}
-            </select>${I.chev}
-          </span>
-        </label>`;
-      }).join('')}
-      <button class="fb-reset" id="reset-filters" type="button">${I.reset}초기화</button>
-    </form>`;
+      return `<form class="filterbar filterbar-interactive" id="filter-form" aria-label="${escapeHTML(translate('searchResultFilters'))}">
+
+          ${Object.keys(FILTERS).map(function (key) {
+
+              const filter = FILTERS[key];
+              const value = state.filters[key];
+
+              // 필터 제목 번역
+              const label = translate(filter.label);
+
+              return `<label class="fb-item" for="filter-${key}">
+
+                  <span class="fb-label">${filter.icon}${escapeHTML(label)}</span>
+
+                  <span class="select filter-select ${value ? 'active' : ''}">
+
+                      <select id="filter-${key}" data-filter="${key}" aria-label="${escapeHTML(label)}">
+
+                          ${filter.options.map(function (option) {
+
+                              //실제 검색값 유지, 표시 문구만 번역
+                              return `<option value="${escapeHTML(option[0])}" ${option[0] === value ? 'selected' : ''}>${escapeHTML(translate(option[1]))}</option>`;
+
+                          }).join('')}
+
+                      </select>${I.chev}
+
+                  </span>
+
+              </label>`;
+
+          }).join('')}
+
+          <button class="fb-reset" id="reset-filters" type="button">${I.reset}${translate('reset')}</button>
+
+      </form>`;
   }
 
   function activeFilterCount() {
     return Object.keys(state.filters).filter(function (key) { return state.filters[key]; }).length;
   }
+  
+  // 선택된 필터값을 화면 표시용 문구로 번역
+  function translateFilterValue(key, value) {
 
+      const filter = FILTERS[key];
+
+      if (!filter) return value;
+
+      const option = filter.options.find(function (item) {
+          return item[0] === value;
+      });
+
+      return option ? translate(option[1]) : value;
+  }
+
+  // 적용된 필터 및 해제 버튼 다국어 적용
   function renderAppliedFilters() {
-    if (!activeFilterCount()) return '';
-    const chips = [];
-    if (state.filters.age) chips.push({key:'age', label:'나이 : ' + state.filters.age});
-    if (state.filters.nat) chips.push({key:'nat', label:'국적 : ' + state.filters.nat});
-    if (state.filters.cat) state.filters.cat.split(',').forEach(function (category) { chips.push({key:'cat', label:category}); });
-    if (state.filters.reg) chips.push({key:'reg', label:'지역 : ' + state.filters.reg});
-    return `<div class="applied"><span class="lbl">적용된 필터</span>
-      ${chips.map(function (chip) { return `<button class="fchip" type="button" data-clear-filter="${chip.key}">${escapeHTML(chip.label)}${I.x}</button>`; }).join('')}
-      <button class="clear-all" id="clear-all-filters" type="button">전체 해제</button>
-    </div>`;
+
+      if (!activeFilterCount()) return '';
+
+      const chips = [];
+
+      // 나이 필터 번역
+      if (state.filters.age) {
+          chips.push({
+              key: 'age',
+              label: translate('age') + ' : ' +
+                     translateFilterValue('age', state.filters.age)
+          });
+      }
+
+      // 국적 필터 번역
+      if (state.filters.nat) {
+          chips.push({
+              key: 'nat',
+              label: translate('nationality') + ' : ' +
+                     translateFilterValue('nat', state.filters.nat)
+          });
+      }
+
+      // 카테고리 필터 번역
+      if (state.filters.cat) {
+          state.filters.cat.split(',').forEach(function (category) {
+              chips.push({
+                  key: 'cat',
+                  label: translateFilterValue('cat', category)
+              });
+          });
+      }
+
+      // 지역 필터 번역
+      if (state.filters.reg) {
+          chips.push({
+              key: 'reg',
+              label: translate('region') + ' : ' +
+                     translateFilterValue('reg', state.filters.reg)
+          });
+      }
+
+      return `<div class="applied">
+
+          <span class="lbl">${translate('appliedFilters')}</span>
+
+          ${chips.map(function (chip) {
+              return `<button class="fchip" type="button" data-clear-filter="${chip.key}">${escapeHTML(chip.label)}${I.x}</button>`;
+          }).join('')}
+
+          <button class="clear-all" id="clear-all-filters" type="button">${translate('clearAllFilters')}</button>
+
+      </div>`;
   }
 
   function itemMatches(item, query) {
@@ -246,41 +373,121 @@
     return [unfilteredItems.length].concat(values);
   }
 
+  // 검색 결과 건수 및 정렬 영역 다국어 적용
   function renderResultsToolbar(count) {
-    return `<div class="res-bar">
-      <div class="count">검색 결과 <b>${count}</b>건${activeFilterCount() ? `<small>‘${escapeHTML(state.query)}’ · 필터 ${activeFilterCount()}개 적용</small>` : ''}</div>
-      <div class="res-tools">
-        <label class="sort"><span class="sr-only">정렬</span><select id="sort-results" aria-label="검색 결과 정렬">
-          <option value="latest" ${state.sort === 'latest' ? 'selected' : ''}>최신순</option>
-          <option value="popular" ${state.sort === 'popular' ? 'selected' : ''}>인기순</option>
-          <option value="deadline" ${state.sort === 'deadline' ? 'selected' : ''}>마감순</option>
-        </select>${I.chev}</label>
-        <div class="view-toggle" role="group" aria-label="검색 결과 보기 방식">
-          <button class="${state.view === 'grid' ? 'on' : ''}" type="button" data-view="grid" aria-label="카드형 보기" aria-pressed="${state.view === 'grid'}">${I.gridS}</button>
-          <button class="${state.view === 'list' ? 'on' : ''}" type="button" data-view="list" aria-label="리스트형 보기" aria-pressed="${state.view === 'list'}">${I.list}</button>
-        </div>
-      </div>
-    </div>`;
+
+      return `<div class="res-bar">
+
+          <div class="count">
+              ${translate('searchResults')} <b>${count}</b>${translate('countUnit')}
+
+              ${activeFilterCount() ? `<small>‘${escapeHTML(state.query)}’ · ${escapeHTML(translate('filtersApplied', {count: activeFilterCount()}))}</small>` : ''}
+          </div>
+
+          <div class="res-tools">
+
+              <label class="sort">
+
+                  <span class="sr-only">${translate('sort')}</span>
+
+                  <select id="sort-results" aria-label="${escapeHTML(translate('sortResults'))}">
+
+                      <option value="latest" ${state.sort === 'latest' ? 'selected' : ''}>${translate('latest')}</option>
+
+                      <option value="popular" ${state.sort === 'popular' ? 'selected' : ''}>${translate('popular')}</option>
+
+                      <option value="deadline" ${state.sort === 'deadline' ? 'selected' : ''}>${translate('deadline')}</option>
+
+                  </select>${I.chev}
+
+              </label>
+
+              <div class="view-toggle" role="group" aria-label="${escapeHTML(translate('resultView'))}">
+
+                  <button class="${state.view === 'grid' ? 'on' : ''}" type="button" data-view="grid" aria-label="${escapeHTML(translate('gridView'))}" aria-pressed="${state.view === 'grid'}">${I.gridS}</button>
+
+                  <button class="${state.view === 'list' ? 'on' : ''}" type="button" data-view="list" aria-label="${escapeHTML(translate('listView'))}" aria-pressed="${state.view === 'list'}">${I.list}</button>
+
+              </div>
+
+          </div>
+
+      </div>`;
   }
 
+  // 모집 상태 탭 다국어 적용
   function renderStatusTabs(counts) {
-    const labels = ['전체','모집중','마감임박','접수예정','마감'];
-    return `<div class="status-tabs" role="tablist">${labels.map(function (label, index) {
-      const status = STATUS_ORDER[index];
-      return `<button class="${state.status === status ? 'on' : ''}" type="button" data-status="${status}" role="tab" aria-selected="${state.status === status}">${label} <small>${counts[index]}</small></button>`;
-    }).join('')}</div>`;
+
+      const labels = [
+          'all',
+          'open',
+          'closing',
+          'soon',
+          'closed'
+      ];
+
+      return `<div class="status-tabs" role="tablist">
+
+          ${labels.map(function (label, index) {
+
+              const status = STATUS_ORDER[index];
+
+              return `<button class="${state.status === status ? 'on' : ''}" type="button" data-status="${status}" role="tab" aria-selected="${state.status === status}">${translate(label)} <small>${counts[index]}</small></button>`;
+
+          }).join('')}
+
+      </div>`;
   }
 
+  // 검색 결과가 없을 때 안내 화면 다국어 적용
   function renderEmpty() {
-    const query = state.query || '선택한 조건';
-    return `<div class="empty">
-      <div class="icon">${I.emptyS}</div>
-      <h3>‘<em>${escapeHTML(query)}</em>’에 대한 검색 결과가 없어요</h3>
-      <p>현재 진행 중인 공고가 없거나, 다른 표현으로 등록되어 있을 수 있어요.</p>
-      <ul><li>단어의 철자가 정확한지 확인해 주세요.</li><li>‘드론’, ‘자격증’처럼 더 짧은 검색어로 검색해 보세요.</li><li>선택된 필터를 해제해 보세요.</li></ul>
-      <div class="kws"><span class="empty-kws-label">이 검색어는 어떠세요?</span>${['자격증','직업훈련','청년 취업','국민내일배움카드'].map(function (keyword) { return `<button class="kw" type="button" data-search-value="${encoded(keyword)}"># ${keyword}</button>`; }).join('')}</div>
-      <div class="empty-actions"><button class="btn btn-line" id="empty-reset" type="button">${I.reset} 필터 초기화</button><button class="btn btn-primary" type="button">${I.bell} 관련 공고 알림 받기</button></div>
-    </div>`;
+
+      const query = state.query || translate('selectedConditions');
+
+      // 검색어 강조 디자인 유지 및 검색 결과 안내 번역
+      const emptyTitle = escapeHTML(
+          translate('noSearchResults', {query: '{query}'})
+      ).replace('{query}', function () {
+          return `<em>${escapeHTML(query)}</em>`;
+      });
+
+      return `<div class="empty">
+
+          <div class="icon">${I.emptyS}</div>
+
+          <h3>${emptyTitle}</h3>
+
+          <p>${translate('noResultsDescription')}</p>
+
+          <ul>
+              <li>${translate('checkSpelling')}</li>
+              <li>${translate('shorterKeyword')}</li>
+              <li>${translate('removeSelectedFilters')}</li>
+          </ul>
+
+          <div class="kws">
+
+              <span class="empty-kws-label">${translate('suggestOtherKeywords')}</span>
+
+              ${['자격증','직업훈련','청년 취업','국민내일배움카드'].map(function (keyword) {
+                  return `<button class="kw" type="button" data-search-value="${encoded(keyword)}"># ${escapeHTML(keyword)}</button>`;
+              }).join('')}
+
+          </div>
+
+          <div class="empty-actions">
+
+              <button class="btn btn-line" id="empty-reset" type="button">
+                  ${I.reset} ${translate('resetFilters')}
+              </button>
+
+              <button class="btn btn-primary" type="button">
+                  ${I.bell} ${translate('relatedNotification')}
+              </button>
+
+          </div>
+
+      </div>`;
   }
 
   function normalizeDetail(item) {
@@ -293,28 +500,107 @@
   function renderDetailPage() {
     const d = normalizeDetail(state.detailItem);
     const related = ALL_RESULTS.filter(function (item) { return item.title !== d.title; }).slice(0, 3);
-    const deadlineLabel = d.dday === '마감' ? '접수 마감' : `마감까지 ${d.dday}`;
+	// 공고 마감일 안내 다국어 적용
+	const deadlineLabel = d.dday === '마감'
+	    ? translate('applicationClosed')
+	    : translate('deadlineRemaining', {dday: d.dday});
     return `${C.header(2)}
       <main class="container detail-page">
-        <nav class="crumb" aria-label="현재 위치">${I.home}<a href="index.html">홈</a>›<button type="button" data-back-results>검색 결과 ‘${escapeHTML(state.query || '시흥')}’</button>›<b>공고 상세</b></nav>
+	  <!-- 상세 화면 상단 경로 다국어 적용 -->
+	  <nav class="crumb" aria-label="${escapeHTML(translate('currentLocation'))}">
+	      ${I.home}
+	      <a href="index.html">${translate('home')}</a>
+	      ›
+	      <button type="button" data-back-results>
+	          ${translate('searchResults')} ‘${escapeHTML(state.query || '시흥')}’
+	      </button>
+	      ›
+	      <b>${translate('announcementDetail')}</b>
+	  </nav>
         <div class="detail">
           <div>
             <div class="d-head">
               <div class="tags">${C.status(d.status)}${d.tags.map(C.tag).join('')}</div>
               <h1>${escapeHTML(d.title)}</h1>
-              <div class="org"><span>담당 : ${escapeHTML(d.org)}</span><span>등록일 : 2024.10.28.</span><span>조회 1,284</span></div>
+			  <!-- 공고 기본 정보 제목 다국어 적용 -->
+			  <div class="org">
+			      <span>${translate('department')} : ${escapeHTML(d.org)}</span>
+			      <span>${translate('registrationDate')} : 2024.10.28.</span>
+			      <span>${translate('views')} 1,284</span>
+			  </div>
             </div>
             ${C.ph(d.tags[0],d.img,'').replace('class="ph ','class="ph d-hero ')}
-            <section class="d-sec detail-intro"><h3>사업 개요</h3>
-              <p>${escapeHTML(d.benefit)}을 중심으로 시민에게 필요한 정보와 참여 기회를 제공하는 시흥시 공공사업입니다. 신청 대상과 기간을 확인한 뒤 온라인으로 간편하게 신청할 수 있습니다.</p>
+			<!-- 사업 개요 제목 다국어 적용 -->
+			<section class="d-sec detail-intro">
+			    <h3>${translate('programOverview')}</h3>
+				<!-- 사업 개요 고정 안내 문구 다국어 적용 -->
+				<p>${escapeHTML(translate('programOverviewDescription', {
+				    benefit: d.benefit
+				}))}</p>
             </section>
-            <section class="d-sec"><h3>지원 내용</h3>
-              <div class="d-table"><div>참여 대상</div><div>${escapeHTML(d.target)}</div><div>모집 인원</div><div>40명 (선착순)</div><div>신청 기간</div><div>${escapeHTML(d.period)}</div><div>운영 기간</div><div>선정자에게 개별 안내</div><div>지원 내용</div><div>${escapeHTML(d.benefit)}</div><div>참가비</div><div>무료</div><div>장소</div><div>시흥시 관내 지정 장소</div></div>
+			<!-- 지원 내용 및 상세 정보 항목 다국어 적용 -->
+			<section class="d-sec">
+
+			    <h3>${translate('supportContent')}</h3>
+
+			    <div class="d-table">
+
+			        <div>${translate('participationTarget')}</div>
+			        <div>${escapeHTML(d.target)}</div>
+
+			        <div>${translate('recruitmentNumber')}</div>
+			        <div>40명 (선착순)</div>
+
+			        <div>${translate('applicationPeriod')}</div>
+			        <div>${escapeHTML(d.period)}</div>
+
+			        <div>${translate('operationPeriod')}</div>
+			        <div>선정자에게 개별 안내</div>
+
+			        <div>${translate('supportContent')}</div>
+			        <div>${escapeHTML(d.benefit)}</div>
+
+			        <div>${translate('participationFee')}</div>
+			        <div>무료</div>
+
+			        <div>${translate('location')}</div>
+			        <div>시흥시 관내 지정 장소</div>
+
+			    </div>
+
             </section>
-            <section class="d-sec"><h3>신청 방법</h3>
-              <div class="steps">${[['온라인 신청','시흥쏙쏙에서 신청서 작성'],['서류 확인','자격 요건 확인 (3일 이내)'],['선정 안내','문자 · 이메일로 개별 안내'],['사업 참여','안내된 일정에 맞춰 참여']].map(function (step, index) { return `<div class="step"><div class="n">STEP 0${index + 1}</div><div class="t">${step[0]}</div><div class="s">${step[1]}</div></div>`; }).join('')}</div>
-            </section>
-            <section class="d-sec"><h3>첨부파일</h3>
+			<!-- 신청 방법 및 신청 절차 다국어 적용 -->
+			<section class="d-sec">
+
+			    <h3>${translate('applicationMethod')}</h3>
+
+			    <div class="steps">
+
+			        ${[
+			            ['onlineApplication', 'onlineApplicationDescription'],
+			            ['documentReview', 'documentReviewDescription'],
+			            ['selectionNotice', 'selectionNoticeDescription'],
+			            ['programParticipation', 'programParticipationDescription']
+			        ].map(function (step, index) {
+
+			            return `<div class="step">
+
+			                <div class="n">STEP 0${index + 1}</div>
+
+			                <div class="t">${translate(step[0])}</div>
+
+			                <div class="s">${translate(step[1])}</div>
+
+			            </div>`;
+
+			        }).join('')}
+
+			    </div>
+
+			</section>
+			<!-- 첨부파일 제목 다국어 적용 -->
+			<section class="d-sec">
+			    <h3>${translate('attachments')}</h3>
               <div class="files"><a href="#">${I.file}공고문_상세안내.hwp<span class="sz">128KB</span></a><a href="#">${I.file}참가신청서_양식.pdf<span class="sz">64KB</span></a></div>
             </section>
           </div>
@@ -323,14 +609,51 @@
             <div class="big">${escapeHTML(d.title.replace('시흥시 ',''))}</div>
             ${C.infoRows(d)}
             <div class="progress"><i style="width:72%"></i></div>
-            <div class="pl"><span>신청 현황 29 / 40명</span><span>72%</span></div>
-            <div class="acts"><button class="btn btn-primary" type="button">신청하기</button><button class="btn btn-line" type="button" aria-label="관심 공고 저장">${I.heart}</button><button class="btn btn-line" type="button" aria-label="공고 공유">${I.share}</button></div>
-            <div class="side-note">문의 : ${escapeHTML(d.org)}<br>031-310-0000 (평일 09:00 ~ 18:00)</div>
+			<!-- 신청 현황 다국어 적용 -->
+			<div class="pl">
+			    <span>${translate('applicationStatus')} 29 / 40${translate('personUnit')}</span>
+			    <span>72%</span>
+			</div>
+			<!-- 신청 및 공고 관리 버튼 다국어 적용 -->
+			<div class="acts">
+
+			    <button class="btn btn-primary" type="button">
+			        ${translate('apply')}
+			    </button>
+
+			    <button class="btn btn-line" type="button"
+			        aria-label="${escapeHTML(translate('saveAnnouncement'))}">
+			        ${I.heart}
+			    </button>
+
+			    <button class="btn btn-line" type="button"
+			        aria-label="${escapeHTML(translate('shareAnnouncement'))}">
+			        ${I.share}
+			    </button>
+
+			</div>
+			<!-- 문의 및 운영시간 안내 다국어 적용 -->
+			<div class="side-note">
+			    ${translate('inquiry')} : ${escapeHTML(d.org)}
+			    <br>
+			    031-310-0000 (${translate('weekdaysOnly')} 09:00 ~ 18:00)
+			</div>
           </aside>
         </div>
       </main>
       <section class="sec related-section">
-        <div class="sec-head"><div><h2>함께 보면 좋은 공고</h2></div><button class="more" type="button" data-back-results>전체 보기 ${I.arrow}</button></div>
+	  <!-- 관련 공고 추천 영역 다국어 적용 -->
+	  <div class="sec-head">
+
+	      <div>
+	          <h2>${translate('relatedAnnouncements')}</h2>
+	      </div>
+
+	      <button class="more" type="button" data-back-results>
+	          ${translate('viewAll')} ${I.arrow}
+	      </button>
+
+	  </div>
         <div class="res-grid">${related.map(C.hcard).join('')}</div>
       </section>
       ${C.footer()}`;
@@ -343,7 +666,7 @@
     const counts = statusCounts(total, allForQuery);
     const selectedCount = state.status === 'all' ? total : counts[STATUS_ORDER.indexOf(state.status)];
     return `${C.header(-1)}
-      ${state.searchOpen ? '<button class="search-overlay" id="search-overlay" type="button" aria-label="검색 제안 닫기"></button>' : ''}
+      ${state.searchOpen ? `<button class="search-overlay" id="search-overlay" type="button" aria-label="${escapeHTML(translate('closeSuggestions'))}"></button>` : ''}
       ${renderHero(true)}
       ${renderFilterBar()}
       ${renderAppliedFilters()}
@@ -367,36 +690,111 @@
     ];
     const deadline = [D.results[2], D.results[7], D.results[0], D.results[3]];
     return `${C.header(-1)}
-      ${state.searchOpen ? '<button class="search-overlay" id="search-overlay" type="button" aria-label="검색 제안 닫기"></button>' : ''}
+      ${state.searchOpen ? `<button class="search-overlay" id="search-overlay" type="button" aria-label="${escapeHTML(translate('closeSuggestions'))}"></button>` : ''}
       ${renderHero(false)}
       ${renderFilterBar()}
 
-      <section class="sec home-section">
-        <div class="sec-head"><div><h2>분야별로 찾아보기</h2><div class="desc">관심 있는 분야를 선택하면 관련 공고만 모아서 보여드려요.</div></div></div>
-        <div class="quick">${quick.map(function (item) { return `<a href="#" data-search-value="${encoded(item[0].replace(' · 행사',''))}"><span class="qi" style="background:${item[1]};color:${item[2]}">${I.grid.replace('width="20" height="20"','width="26" height="26"')}</span>${item[0]}<small>${item[3]}건</small></a>`; }).join('')}</div>
-      </section>
+
+	  <section class="sec home-section">
+
+	    <div class="sec-head">
+	      <div>
+	        <h2>${translate('categoryTitle')}</h2>
+	        <div class="desc">${translate('categoryDescription')}</div>
+	      </div>
+	    </div>
+
+	    ${/* 다국어 지원: 카테고리 이름과 공고 건수 단위 번역, 기존 검색값 유지 */ ''}
+	    <div class="quick">${quick.map(function (item, index) {
+	      const labels = translate('categoryLabels');
+	      const name = Array.isArray(labels) ? (labels[index] || item[0]) : item[0];
+	      const unit = translate('countUnit');
+
+	      return `<a href="#" data-search-value="${encoded(item[0].replace(' · 행사',''))}"><span class="qi" style="background:${item[1]};color:${item[2]}">${I.grid.replace('width="20" height="20"','width="26" height="26"')}</span>${escapeHTML(name)}<small>${item[3]}${unit || '건'}</small></a>`;
+	    }).join('')}</div>
+
+	  </section>
+
+	  <section class="sec home-block">
+
+	  ${/*맞춤형 추천 카드 제목, 설명, 공고 건수 문구 다국어 적용 */ ''}
+	        <div class="persona">${persona.map(function (item, index) {
+	          const titles = translate('personaTitles');
+	          const descriptions = translate('personaDescriptions');
+	          const title = Array.isArray(titles) ? (titles[index] || item[0]) : item[0];
+	          const description = Array.isArray(descriptions) ? (descriptions[index] || item[1]) : item[1];
+	          const countText = translate('personaCountSuffix');
+
+			  // 맞춤형 추천 카드 일러스트 문구 번역
+			  return `<a href="#" data-search-value="${encoded(item[5])}" style="background:${item[2]};color:${item[3]}"><h5>${escapeHTML(title)}</h5><p>${escapeHTML(description)}</p><span class="n">${item[4]}${countText || '개 공고 보기'} ${I.arrow}</span>${C.ph(item[5],translate('illustration'))}</a>`;
+	        }).join('')}</div>
+
+	  </section>
 
       <section class="sec home-block">
-        <div class="sec-head"><div><h2>나에게 맞는 지원, <em>쏙쏙</em> 골라봤어요</h2><div class="desc">로그인하면 연령·국적·관심사에 맞춰 자동으로 추천해 드려요.</div></div><a class="more" href="#">맞춤 설정 ${I.arrow}</a></div>
-        <div class="persona">${persona.map(function (item) { return `<a href="#" data-search-value="${encoded(item[5])}" style="background:${item[2]};color:${item[3]}"><h5>${item[0]}</h5><p>${item[1]}</p><span class="n">${item[4]}개 공고 보기 ${I.arrow}</span>${C.ph(item[5],'일러스트')}</a>`; }).join('')}</div>
-      </section>
-
-      <section class="sec home-block">
-        <div class="sec-head"><div><h2>곧 마감되는 공고</h2><div class="desc">놓치기 전에 확인하세요.</div></div><a class="more" href="#" data-search-value="${encoded('시흥')}">전체 보기 ${I.arrow}</a></div>
-        <div class="deadline-grid">${deadline.map(function (item) { return `<article class="dcard" data-detail="${encoded(item.title)}" role="button" tabindex="0" aria-label="${item.title} 상세 보기">${C.ph(item.tags[0],item.img,C.status(item.status))}<div class="b"><div class="tags">${item.tags.map(C.tag).join('')}</div><h4>${item.title.replace('시흥시 ','')}</h4><div class="row"><span>${item.org}</span><b>${item.dday}</b></div></div></article>`; }).join('')}</div>
+	  <!-- 마감 예정 공고 안내 다국어 적용 -->
+	  <div class="sec-head">
+	      <div>
+	          <h2>${translate('closingAnnouncements')}</h2>
+	          <div class="desc">${translate('closingDescription')}</div>
+	      </div>
+	      <a class="more" href="#" data-search-value="${encoded('시흥')}">${translate('viewAll')} ${I.arrow}</a>
+	  </div>
+        <div class="deadline-grid">${deadline.map(function (item) { return `<article class="dcard" data-detail="${encoded(item.title)}" role="button" tabindex="0" aria-label="${escapeHTML(item.title)} ${escapeHTML(translate('viewDetails'))}">${C.ph(item.tags[0],item.img,C.status(item.status))}<div class="b"><div class="tags">${item.tags.map(C.tag).join('')}</div><h4>${item.title.replace('시흥시 ','')}</h4><div class="row"><span>${item.org}</span><b>${item.dday}</b></div></div></article>`; }).join('')}</div>
       </section>
 
       <section class="sec two-col home-block">
-        <div class="box"><div class="box-head"><h3>공고 · 알림</h3><div class="notice-tabs"><span class="on">전체</span><span>공고</span><span>고시</span><span>보도자료</span></div></div>
-          ${[['공고','2025년 시흥시 청년 창업 지원사업 참여기업 모집 공고',1,'11.14'],['고시','시흥시 도시관리계획(공원) 결정 변경 고시',1,'11.14'],['공고','2024년 하반기 시흥시 공공근로사업 참여자 모집',0,'11.12'],['보도','시흥시, 외국인 주민 통역 서비스 7개 언어로 확대',0,'11.11'],['공고','시흥 갯골축제 자원봉사자 모집 결과 안내',0,'11.08'],['공고','2024년 소상공인 시설개선 지원사업 2차 공고',0,'11.06']].map(function (item) { return `<div class="nrow"><span class="cat">${item[0]}</span><span class="t">${item[1]}</span>${item[2] ? '<span class="new">N</span>' : ''}<span class="d">2024.${item[3]}</span></div>`; }).join('')}
+	  <!-- 공고 및 알림 메뉴 다국어 적용 -->
+	  <div class="box">
+	      <div class="box-head">
+	          <h3>${translate('notice')}</h3>
+	          <div class="notice-tabs">
+	              <span class="on">${translate('all')}</span>
+	              <span>${translate('announcement')}</span>
+	              <span>${translate('officialNotice')}</span>
+	              <span>${translate('pressRelease')}</span>
+	          </div>
+	      </div>
+          ${[['공고','2025년 시흥시 청년 창업 지원사업 참여기업 모집 공고',1,'11.14'],['고시','시흥시 도시관리계획(공원) 결정 변경 고시',1,'11.14'],['공고','2024년 하반기 시흥시 공공근로사업 참여자 모집',0,'11.12'],['보도','시흥시, 외국인 주민 통역 서비스 7개 언어로 확대',0,'11.11'],['공고','시흥 갯골축제 자원봉사자 모집 결과 안내',0,'11.08'],['공고','2024년 소상공인 시설개선 지원사업 2차 공고',0,'11.06']].map(function (item) { return `<div class="nrow"><span class="cat">${escapeHTML(translate({'공고':'announcement','고시':'officialNotice','보도':'press'}[item[0]] || item[0]))}</span><span class="t">${item[1]}</span>${item[2] ? '<span class="new">N</span>' : ''}<span class="d">2024.${item[3]}</span></div>`; }).join('')}
         </div>
-        <div class="box"><div class="box-head"><h3>이번 주 행사</h3><a class="more" href="#">${I.cal} 달력</a></div>
-          <div class="cal-week">${[['월',11,1],['화',12,0],['수',13,1],['목',14,1],['금',15,1],['토',16,1],['일',17,0]].map(function (item, index) { return `<div class="${index === 3 ? 'on' : ''}">${item[0]}<b>${item[1]}</b>${item[2] ? '<span class="dot"></span>' : '<span style="height:4px"></span>'}</div>`; }).join('')}</div>
+		<!-- 주간 행사 및 달력 제목 다국어 적용 -->
+		<div class="box">
+		    <div class="box-head">
+		        <h3>${translate('weeklyEvents')}</h3>
+		        <a class="more" href="#">${I.cal} ${translate('calendar')}</a>
+		    </div>
+			<!-- 달력 요일 다국어 적용 -->
+			<div class="cal-week">${[['월',11,1],['화',12,0],['수',13,1],['목',14,1],['금',15,1],['토',16,1],['일',17,0]].map(function (item, index) {
+
+			    const weekdays = translate('weekdays');
+
+			    const day = Array.isArray(weekdays)
+			        ? (weekdays[index] || item[0])
+			        : item[0];
+
+			    return `<div class="${index === 3 ? 'on' : ''}">${escapeHTML(day)}<b>${item[1]}</b>${item[2] ? '<span class="dot"></span>' : '<span style="height:4px"></span>'}</div>`;
+
+			}).join('')}</div>
           ${[['10:00','청년 취업 특강 : 면접의 기술','시흥시 청년센터'],['14:00','다문화 가족 요리 교실','다문화가족지원센터'],['19:00','시흥 시민 오케스트라 정기공연','시흥ABC행복학습타운']].map(function (item) { return `<div class="ev"><span class="time">${item[0]}</span><div><div class="t">${item[1]}</div><div class="p">${I.pin.replace(/20/g,'14')}${item[2]}</div></div></div>`; }).join('')}
         </div>
       </section>
 
-      <section class="sec home-block"><div class="banner"><div class="ring banner-ring-one"></div><div class="ring banner-ring-two"></div><div><h3>새 공고가 올라오면 바로 알려드릴게요</h3><p>관심 분야를 등록하면 카카오톡·문자로 맞춤 공고 알림을 보내드려요.</p></div><button class="btn" type="button">${I.bell} 알림 신청하기</button></div></section>
+	  <!-- 알림 신청 배너 다국어 적용 -->
+	  <section class="sec home-block">
+	      <div class="banner">
+	          <div class="ring banner-ring-one"></div>
+	          <div class="ring banner-ring-two"></div>
+
+	          <div>
+	              <h3>${translate('notificationTitle')}</h3>
+	              <p>${translate('notificationDescription')}</p>
+	          </div>
+
+	          <button class="btn" type="button">
+	              ${I.bell} ${translate('subscribeNotification')}
+	          </button>
+	      </div>
+	  </section>
       ${C.footer()}`;
   }
 
@@ -539,12 +937,30 @@
 
   function render(restoreFocus) {
     root.innerHTML = state.screen === 'home' ? renderHomePage() : state.screen === 'detail' ? renderDetailPage() : renderResultsPage();
-    document.title = state.screen === 'home'
-      ? '시흥쏙쏙 | 공공사업 통합검색'
-      : state.screen === 'detail'
-        ? `${state.detailItem ? state.detailItem.title : '공고 상세'} | 시흥쏙쏙`
-        : `${state.query} 검색 결과 | 시흥쏙쏙`;
+	//  선택한 언어를 HTML 문서에 반영
+	document.documentElement.lang = currentLanguage;
+
+	//  언어 선택 안내 문구 다국어 적용
+	const languageLabel = document.querySelector('label[for="site-language"]');
+
+	if (languageLabel) {
+	    languageLabel.textContent = translate('languageSelect') + ': ';
+	}
+	
+	//  브라우저 탭 제목 다국어 적용
+	document.title = state.screen === 'home'
+	    ? `시흥쏙쏙 | ${translate('publicProgramSearch')}`
+	    : state.screen === 'detail'
+	      ? `${state.detailItem ? state.detailItem.title : translate('announcementDetail')} | 시흥쏙쏙`
+	      : `${state.query} ${translate('searchResults')} | 시흥쏙쏙`;
+		  //  페이지 설명 다국어 적용
+		  const metaDescription = document.querySelector('meta[name="description"]');
+
+		  if (metaDescription) {
+		      metaDescription.setAttribute('content', translate('siteDescription'));
+		  }
     bindEvents();
+	
     if (restoreFocus && state.searchOpen) {
       requestAnimationFrame(function () {
         const input = document.getElementById('global-search');
@@ -555,6 +971,11 @@
       });
     }
   }
-
+  
+  // 다국어 지원: 언어 변경 시 현재 화면 다시 그리기
+   window.addEventListener("siteLanguageChanged", function () {
+     render();
+   });
+  
   render();
 })();

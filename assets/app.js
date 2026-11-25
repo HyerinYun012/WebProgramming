@@ -1,5 +1,72 @@
 /* 시흥쏙쏙 – shared components (plain JS, static DOM output for Figma import) */
 (function(){
+	
+	//  기존 정적 HTML 페이지와의 호환 처리
+	const translate = (key, variables = {}) => {
+	    if (typeof window.translate === 'function') {
+	        return window.translate(key, variables);
+	    }
+
+	    return fallbackLabels[key] !== undefined ? fallbackLabels[key] : key;
+	};
+
+	// 다국어 스크립트가 없는 페이지의 기본 한국어 문구
+	const fallbackLabels = {
+	    supportProgram: '사업 · 지원사업',
+	    notice: '공고 · 알림',
+	    culture: '문화 · 행사',
+	    lifeInfo: '생활정보',
+	    participation: '시민참여',
+	    login: '로그인',
+	    signup: '회원가입',
+	    siteName: '시흥쏙쏙',
+	    home: '홈',
+	    search: '검색',
+	    searchPlaceholder: '관심 있는 지원사업, 행사, 교육을 검색해 보세요',
+	    searchResults: '검색 결과',
+	    countUnit: '건',
+	    latest: '최신순',
+	    all: '전체',
+	    open: '모집중',
+	    closing: '마감임박',
+	    soon: '접수예정',
+	    closed: '마감',
+	    age: '나이',
+	    nationality: '국적',
+	    category: '카테고리',
+	    region: '지역',
+	    reset: '초기화',
+	    participationTarget: '참여 대상',
+	    supportTarget: '지원 대상',
+	    applicationPeriod: '신청 기간',
+	    supportContent: '지원 내용',
+	    viewDetails: '자세히 보기',
+	    viewAll: '전체 보기',
+	    youth: '청년',
+	    foreigner: '외국인',
+	    multicultural: '다문화',
+	    smallBusiness: '소상공인',
+	    family: '가족',
+	    senior: '어르신',
+	    cultureOnly: '문화',
+	    employment: '취업',
+	    education: '교육',
+	    livingSupport: '생활지원',
+	    environment: '환경',
+	    child: '아동',
+	    housing: '주거',
+	    event: '행사',
+	    recommendationTitle: '이런것도 있어요!',
+	    recommendationDescription: '검색어 외에도 국적, 관심 카테고리, 연령, 언어 설정을 바탕으로 필요한 공고를 재분류해서 추천해드려요.',
+	    privacyPolicy: '개인정보처리방침',
+	    termsOfService: '이용약관',
+	    copyrightPolicy: '저작권정책',
+	    webAccessibility: '웹 접근성',
+	    siteMap: '사이트맵',
+	    footerAddress: '(14988) 경기도 시흥시 시청로 20 (장현동) 시흥시청 · 대표전화 031-310-2114'
+	};
+
+		
 const I = {
   search:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
   x:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
@@ -34,11 +101,37 @@ const PH = {
 };
 const ph = (cat,label,cls='') => `<div class="ph ${cls}" style="background:${PH[cat]||'#E3E8F0'}">__S__<span>${label}</span></div>`;
 
-const statusLbl = {open:'모집중',closing:'마감임박',soon:'접수예정',closed:'마감'};
-const status = s => `<span class="status ${s}"><i></i>${statusLbl[s]}</span>`;
-const tag = t => `<span class="tag t-${t}">${t}</span>`;
+//  모집 상태 다국어 적용
+const status = s => `<span class="status ${s}"><i></i>${translate(s)}</span>`;
+// 카테고리별 번역 키 연결
+const tagKeys = {
+    '청년': 'youth',
+    '외국인': 'foreigner',
+    '다문화': 'multicultural',
+    '소상공인': 'smallBusiness',
+    '가족': 'family',
+    '어르신': 'senior',
+    '문화': 'cultureOnly',
+    '문화 · 행사': 'culture',
+    '취업': 'employment',
+    '교육': 'education',
+    '생활지원': 'livingSupport',
+    '환경': 'environment',
+    '아동': 'child',
+    '주거': 'housing',
+    '행사': 'event',
+    '지원사업': 'supportProgram'
+};
 
-const infoRows = (d, labels=['참여 대상','신청 기간','지원 내용']) => `
+//  기존 CSS 분류값 유지 및 표시 문구만 번역
+const tag = t => `<span class="tag t-${t}">${tagKeys[t] ? translate(tagKeys[t]) : t}</span>`;
+
+//  공고 카드 고정 안내 문구 다국어 적용
+const infoRows = (d, labels=[
+    translate('participationTarget'),
+    translate('applicationPeriod'),
+    translate('supportContent')
+]) => `
   <div class="info">
     <div class="info-row"><span class="k">${I.people}${labels[0]}</span><span class="v">${d.target}</span></div>
     <div class="info-row"><span class="k">${I.cal}${labels[1]}</span><span class="v ${d.status==='closing'?'hl':''}">${d.period}</span></div>
@@ -70,33 +163,61 @@ window.SDATA = DATA;
 
 /* ---------- Components ---------- */
 const C = {};
+// 상단 헤더 다국어 적용
 C.header = (active) => {
-  const m = ['사업 · 지원사업','공고 · 알림','문화 · 행사','생활정보','시민참여'];
+  const m = [
+    translate('supportProgram'),
+    translate('notice'),
+    translate('culture'),
+    translate('lifeInfo'),
+    translate('participation')
+  ];
+
   return `<header class="gnb"><div class="container">
-    <a class="logo" href="index.html" aria-label="시흥쏙쏙 홈"><span class="logo-mark"><i></i><i></i></span>시흥<b>쏙쏙</b></a>
+    <a class="logo" href="index.html" aria-label="${translate('siteName')} ${translate('home')}"><span class="logo-mark"><i></i><i></i></span>시흥<b>쏙쏙</b></a>
     <nav class="gnb-menu">${m.map((x,i)=>`<a class="${i===active?'on':''}">${x}</a>`).join('')}</nav>
-    <div class="gnb-right"><a class="login">${I.user}로그인</a><a class="btn btn-primary">회원가입</a></div>
+    <div class="gnb-right">
+      <a class="login">${I.user}${translate('login')}</a>
+      <a class="btn btn-primary">${translate('signup')}</a>
+    </div>
   </div></header>`;
 };
 C.heroDeco = () => `<div class="hero-deco"><div class="hill h1"></div><div class="hill h3"></div><div class="hill h2"></div></div>`;
+// 검색창 고정 문구 다국어 적용
 C.searchBox = (q, opts={}) => `
   <div class="search-box">
     <span class="ic">${I.search}</span>
-    <span class="q ${q?'':'ph'}">${q || '관심 있는 지원사업, 행사, 교육을 검색해 보세요'}${opts.caret?'<span class="caret"></span>':''}</span>
+    <span class="q ${q?'':'ph'}">${q || translate('searchPlaceholder')}${opts.caret?'<span class="caret"></span>':''}</span>
     ${q?`<span class="clear">${I.x}</span>`:''}
-    <button class="go">검색</button>
+    <button class="go">${translate('search')}</button>
   </div>`;
-C.filterbar = (vals={}) => {
-  const f = [['나이',I.user,'age'],['국적',I.globe,'nat'],['카테고리',I.grid,'cat'],['지역',I.pin,'reg']];
-  return `<div class="filterbar">${f.map(([l,ic,k])=>`
-    <div class="fb-item"><span class="fb-label">${ic}${l}</span><span class="select ${vals[k]?'active':''}">${vals[k]||'전체'}${I.chev}</span></div>`).join('')}
-    <a class="fb-reset">${I.reset}초기화</a></div>`;
-};
-C.vcard = d => `<article class="vcard" data-detail="${encodeURIComponent(d.title)}" role="button" tabindex="0" aria-label="${d.title} 상세 보기">
+  // 검색 필터 고정 문구 다국어 적용
+  C.filterbar = (vals={}) => {
+
+    const f = [
+      [translate('age'), I.user, 'age'],
+      [translate('nationality'), I.globe, 'nat'],
+      [translate('category'), I.grid, 'cat'],
+      [translate('region'), I.pin, 'reg']
+    ];
+
+    return `<div class="filterbar">${f.map(([l,ic,k])=>`
+      <div class="fb-item">
+        <span class="fb-label">${ic}${l}</span>
+        <span class="select ${vals[k]?'active':''}">${vals[k]||translate('all')}${I.chev}</span>
+      </div>`).join('')}
+      <a class="fb-reset">${I.reset}${translate('reset')}</a>
+    </div>`;
+  };
+C.vcard = d => `<article class="vcard" data-detail="${encodeURIComponent(d.title)}" role="button" tabindex="0" aria-label="${d.title} ${translate('viewDetails')}">
   <div class="tags">${d.tags.map(tag).join('')}</div>
   ${ph(d.tags[0],d.img).replace('__S__','')}
   <h4>${d.title}</h4>
-  ${infoRows(d,['지원 대상','신청 기간','지원 내용'])}
+  ${infoRows(d,[
+      translate('supportTarget'),
+      translate('applicationPeriod'),
+      translate('supportContent')
+  ])}
   <a class="arrow-btn go" style="margin-top:14px">${I.arrow}</a>
 </article>`;
 C.hcard = d => `<article class="hcard ${d.status==='closed'?'closed':''}" data-detail="${encodeURIComponent(d.title)}" role="button" tabindex="0" aria-label="${d.title} 상세 보기">
@@ -115,26 +236,74 @@ C.lrow = d => `<article class="lrow" data-detail="${encodeURIComponent(d.title)}
     <div class="desc">${d.benefit}</div>
     <div class="meta"><span>${I.people}<b>${d.target}</b></span><span>${I.cal}<b>${d.period}</b></span></div>
   </div>
-  <div class="side"><span class="dday ${d.status==='closing'?'urgent':d.status==='closed'?'muted':''}">${d.dday}</span><span style="font-size:13px;color:var(--g-500)">${d.org}</span><a class="btn btn-line btn-sm">자세히 보기 ${I.arrow}</a></div>
+  <div class="side"><span class="dday ${d.status==='closing'?'urgent':d.status==='closed'?'muted':''}">${d.dday}</span><span style="font-size:13px;color:var(--g-500)">${d.org}</span><a class="btn btn-line btn-sm">${translate('viewDetails')} ${I.arrow}</a></div>
 </article>`;
-C.reco = (title='이런것도 있어요!', desc='검색어 외에도 국적, 관심 카테고리, 연령, 언어 설정을 바탕으로 필요한 공고를 재분류해서 추천해드려요.') => `
+// 추천 공고 안내 문구 다국어 적용
+C.reco = (
+    title = translate('recommendationTitle'),
+    desc = translate('recommendationDescription')
+) => `
   <div class="reco">
-    <div class="reco-intro"><span class="spark">${I.spark}</span><h3>${title}</h3><p>${desc}</p><a class="more">전체 보기 ${I.arrow}</a></div>
+    <div class="reco-intro">
+      <span class="spark">${I.spark}</span>
+      <h3>${title}</h3>
+      <p>${desc}</p>
+      <a class="more">${translate('viewAll')} ${I.arrow}</a>
+    </div>
     <div class="reco-list">${DATA.reco.map(C.vcard).join('')}</div>
   </div>`;
-C.resBar = (count, view='grid', extra='') => `
-  <div class="res-bar">
-    <div class="count">검색 결과 <b>${count}</b>건${extra}</div>
-    <div class="res-tools"><span class="sort">최신순${I.chev}</span>
-      <div class="view-toggle"><span class="${view==='grid'?'on':''}">${I.gridS}</span><span class="${view==='list'?'on':''}">${I.list}</span></div></div>
-  </div>`;
-C.statusTabs = (counts, on=0) => `<div class="status-tabs">${[['전체',counts[0]],['모집중',counts[1]],['마감임박',counts[2]],['접수예정',counts[3]],['마감',counts[4]]].map(([l,n],i)=>`<a class="${i===on?'on':''}">${l} <small>${n}</small></a>`).join('')}</div>`;
+  // 검색 결과 건수 및 정렬 다국어 적용
+  C.resBar = (count, view='grid', extra='') => `
+    <div class="res-bar">
+      <div class="count">${translate('searchResults')} <b>${count}</b>${translate('countUnit')}${extra}</div>
+      <div class="res-tools">
+        <span class="sort">${translate('latest')}${I.chev}</span>
+        <div class="view-toggle">
+          <span class="${view==='grid'?'on':''}">${I.gridS}</span>
+          <span class="${view==='list'?'on':''}">${I.list}</span>
+        </div>
+      </div>
+    </div>`;
+	// 모집 상태 탭 다국어 적용
+	C.statusTabs = (counts, on=0) => `
+	  <div class="status-tabs">
+	    ${[
+	      [translate('all'), counts[0]],
+	      [translate('open'), counts[1]],
+	      [translate('closing'), counts[2]],
+	      [translate('soon'), counts[3]],
+	      [translate('closed'), counts[4]]
+	    ].map(([l,n],i)=>`
+	      <a class="${i===on?'on':''}">${l} <small>${n}</small></a>
+	    `).join('')}
+	  </div>`;
 C.pager = () => `<div class="pager"><span class="nav">‹</span><span class="on">1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>…</span><span>14</span><span class="nav">›</span></div>`;
-C.footer = () => `<footer class="footer"><div class="container">
-  <div class="links"><a>개인정보처리방침</a><a>이용약관</a><a>저작권정책</a><a>웹 접근성</a><a>사이트맵</a></div>
-  <div class="row"><div class="addr">(14988) 경기도 시흥시 시청로 20 (장현동) 시흥시청 · 대표전화 031-310-2114<br>Copyright © Siheung City. All rights reserved.</div>
-  <span class="logo"><span class="logo-mark"><i></i><i></i></span>시흥<b>쏙쏙</b></span></div>
-</div></footer>`;
+// 하단 푸터 다국어 적용
+C.footer = () => `
+  <footer class="footer">
+    <div class="container">
+
+      <div class="links">
+        <a>${translate('privacyPolicy')}</a>
+        <a>${translate('termsOfService')}</a>
+        <a>${translate('copyrightPolicy')}</a>
+        <a>${translate('webAccessibility')}</a>
+        <a>${translate('siteMap')}</a>
+      </div>
+
+      <div class="row">
+        <div class="addr">
+          ${translate('footerAddress')}
+          <br>Copyright © Siheung City. All rights reserved.
+        </div>
+
+        <span class="logo">
+          <span class="logo-mark"><i></i><i></i></span>시흥<b>쏙쏙</b>
+        </span>
+      </div>
+
+    </div>
+  </footer>`;
 C.ph = (cat,label,inner='') => ph(cat,label).replace('__S__',inner);
 C.status = status; C.tag = tag; C.infoRows = infoRows;
 window.SC = C;
