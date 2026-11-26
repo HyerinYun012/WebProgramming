@@ -29,24 +29,28 @@ public class Notice {
     @Column(name = "clean_content", columnDefinition = "TEXT")
     private String cleanContent;
 
-    // 👇 프론트엔드 4대 필터 & 8대 분야 매칭용 AI 분류 컬럼들
+    // 프론트엔드 4대 필터 & 8대 분야 매칭용 컬럼
     @Column(name = "target_age", length = 50)
-    private String targetAge = "전체"; // 전체, 청년, 어르신, 영유아·아동, 중장년
+    private String targetAge = "전체";
 
     @Column(name = "target_nationality", length = 50)
-    private String targetNationality = "전체"; // 전체, 외국인, 다문화
+    private String targetNationality = "전체";
 
     @Column(name = "ai_category", length = 50)
-    private String aiCategory = "생활·복지"; // 청년, 외국인, 다문화, 소상공인, 가족, 어르신, 교육, 문화·행사, 생활·복지
+    private String aiCategory = "가족";
 
     @Column(name = "region", length = 50)
-    private String region = "경기도 전체"; // 시흥시, 경기도 전체
+    private String region = "경기도 전체";
 
     @Column(name = "ai_summary", columnDefinition = "TEXT")
-    private String aiSummary; // AI 3줄 핵심 요약
+    private String aiSummary;
 
     @Column(name = "ai_tags", length = 500)
-    private String aiTags; // 해시태그 (예: "#청년,#주거지원,#시흥시")
+    private String aiTags;
+
+    // 👇 6개 국어(ko, en, zh-CN, zh-TW, ja, vi) 제목 및 요약 번역본 저장용 JSON 컬럼!
+    @Column(name = "translations", columnDefinition = "MEDIUMTEXT")
+    private String translations;
 
     @Column(name = "is_ai_processed")
     private boolean isAiProcessed = false;
@@ -109,6 +113,9 @@ public class Notice {
 
     public String getAiTags() { return aiTags; }
     public void setAiTags(String aiTags) { this.aiTags = aiTags; }
+
+    public String getTranslations() { return translations; }
+    public void setTranslations(String translations) { this.translations = translations; }
 
     public boolean isAiProcessed() { return isAiProcessed; }
     public void setAiProcessed(boolean aiProcessed) { isAiProcessed = aiProcessed; }

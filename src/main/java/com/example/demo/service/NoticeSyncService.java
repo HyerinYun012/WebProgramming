@@ -1,6 +1,8 @@
 package com.example.demo.service;
 
 import com.example.demo.entity.Notice;
+import com.example.demo.repository.AnonymousContextRepository;
+import com.example.demo.repository.BehaviorLogRepository;
 import com.example.demo.repository.NoticeRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.json.BasicJsonParser;
@@ -24,6 +26,8 @@ import java.util.regex.Pattern;
 public class NoticeSyncService {
 
     private final NoticeRepository noticeRepository;
+    private final BehaviorLogRepository behaviorLogRepository;
+    private final AnonymousContextRepository anonymousContextRepository;
     private final JsonParser jsonParser = new BasicJsonParser();
 
     @Value("${gg.api.url}")
@@ -38,17 +42,31 @@ public class NoticeSyncService {
         "안성", "김포", "화성", "광주", "양주", "포천", "여주", "연천", "가평", "양평"
     };
 
-    // 본문 텍스트 안에 숨어있는 날짜(예: 2026-03-15, 2025.11.01 등) 추출용 정규식
     private static final Pattern DATE_PATTERN = Pattern.compile("(202[3-6])[-./년\\s]+(0?[1-9]|1[0-2])[-./월\\s]+(0?[1-9]|[12][0-9]|3[01])");
 
-    public NoticeSyncService(NoticeRepository noticeRepository) {
+    public NoticeSyncService(NoticeRepository noticeRepository,
+                             BehaviorLogRepository behaviorLogRepository,
+                             AnonymousContextRepository anonymousContextRepository) {
         this.noticeRepository = noticeRepository;
+        this.behaviorLogRepository = behaviorLogRepository;
+        this.anonymousContextRepository = anonymousContextRepository;
     }
 
+    /**
+     * 기존 DB 테이블(공고 + 행동로그 + 익명컨텍스트)을 완전히 싹 밀어버리고(Wipe),
+     * 경기공공데이터 OpenAPI에서 새로 받아와 깨끗하게 채워 넣는 메소드
+     */
     @Transactional
     @SuppressWarnings("unchecked")
     public int fetchAndSaveSiheungNotices() {
         try {
+            // 1. 기존 DB 데이터 전체 초기화 (싹 밀어버리기!)
+            System.out.println("🧹 기존 DB 데이터를 모두 초기화(Wipe)합니다...");
+            behaviorLogRepository.deleteAllInBatch();
+            anonymousContextRepository.deleteAllInBatch();
+            noticeRepository.deleteAllInBatch();
+            noticeRepository.flush();
+
             RestTemplate restTemplate = new RestTemplate();
             restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
 
@@ -97,7 +115,6 @@ public class NoticeSyncService {
                         detailUrl = getString(item, "PUBL_SERVC_DETAIL_KOR_URL", "");
                     }
 
-                    // 💡 업그레이드된 날짜 결정 로직 (API 날짜 -> 본문 날짜 추출 -> ID 기반 분산 날짜)
                     String postedDate = resolveSmartDate(rawDate, title + " " + purpsDtcont, id);
 
                     boolean isSiheung = dept.contains("시흥") || title.contains("시흥") || purpsDtcont.contains("시흥");
@@ -128,9 +145,14 @@ public class NoticeSyncService {
             }
 
             if (!targetNotices.isEmpty()) {
-                noticeRepository.deleteAllInBatch();
                 noticeRepository.saveAll(targetNotices);
             }
+
+            System.out.println("==========================================");
+            System.out.println("🎉 DB 초기화 및 신규 적재 완료! 총 저장 건수: " + targetNotices.size() + "건");
+            System.out.println("   - 시흥시 직접 관련 공고: " + siheungCount + "건");
+            System.out.println("   - 경기도 자체(광역) 공고: " + gyeonggiCount + "건");
+            System.out.println("==========================================");
 
             return targetNotices.size();
 
@@ -140,21 +162,13 @@ public class NoticeSyncService {
         }
     }
 
-    /**
-     * 1순위: API의 LAST_UPD_DE 값 사용
-     * 2순위: LAST_UPD_DE가 null이면 제목/본문 안에서 날짜 패턴(YYYY-MM-DD) 자동 추출
-     * 3순위: 본문에도 날짜가 없는 상시 서비스는 공고 고유 ID를 기반으로 최근 60일 내의 고유 날짜 부여 (모두 같은 날짜로 찍히는 현상 방지!)
-     */
     private String resolveSmartDate(String rawDate, String textContent, String noticeId) {
-        // 1. API 원본에 날짜가 있는 경우
         if (rawDate != null && !rawDate.trim().isEmpty() && !rawDate.equalsIgnoreCase("null")) {
             String digits = rawDate.replaceAll("[^0-9]", "");
             if (digits.length() >= 8) {
                 return digits.substring(0, 4) + "-" + digits.substring(4, 6) + "-" + digits.substring(6, 8);
             }
         }
-
-        // 2. 본문이나 제목 텍스트 안에 날짜가 적혀있는 경우 추출
         if (textContent != null) {
             Matcher matcher = DATE_PATTERN.matcher(textContent);
             if (matcher.find()) {
@@ -164,9 +178,6 @@ public class NoticeSyncService {
                 return year + "-" + month + "-" + day;
             }
         }
-
-        // 3. 상시 서비스여서 날짜가 아예 없는 경우: 공고 ID 해시값으로 최근 1~60일 전 날짜를 일관되게 부여
-        // (※ 만약 날짜 대신 '상시운영'이라는 글자로 넣기를 원하시면 아래 두 줄 대신 return "상시운영"; 으로 바꾸셔도 됩니다!)
         int daysAgo = Math.abs(noticeId.hashCode() % 60);
         return LocalDate.now().minusDays(daysAgo).toString();
     }
