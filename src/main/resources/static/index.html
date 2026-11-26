@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="시흥시 공공사업, 지원사업, 행사와 교육 정보를 한 번에 찾는 AI 통합검색">
+  <title>시흥쏙쏙 | AI 맞춤형 공공사업 통합검색</title>
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    * { box-sizing: border-box; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif; }
+    body { margin: 0; background-color: #f8fafc; color: #0f172a; overflow-x: hidden; }
+
+    /* 1. 상단 헤더 */
+    .sh-topbar {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid #e2e8f0;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .sh-topbar-inner {
+      max-width: 1160px;
+      margin: 0 auto;
+      height: 70px;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sh-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      font-size: 22px;
+      font-weight: 800;
+      color: #1e3a8a;
+      cursor: pointer;
+      user-select: none;
+    }
+    .sh-logo-dots { display: inline-flex; align-items: center; }
+    .sh-dot-orange { width: 18px; height: 18px; border-radius: 50%; background: #ff7a00; margin-right: -5px; }
+    .sh-dot-blue { width: 20px; height: 20px; border-radius: 50%; background: #1d4ed8; }
+
+    .sh-header-controls { display: flex; align-items: center; gap: 10px; }
+    .sh-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 15px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #334155;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .sh-btn:hover { background: #f1f5f9; border-color: #94a3b8; }
+    .sh-btn.primary { background: #1d4ed8; color: #ffffff; border-color: #1d4ed8; }
+    .sh-btn.primary:hover { background: #1e40af; }
+    .sh-btn.danger { background: #fee2e2; color: #dc2626; border-color: #fecaca; padding: 6px 12px; font-size: 12px; }
+    .sh-btn.danger:hover { background: #fecaca; }
+
+    .sh-cnt {
+      background: #e2e8f0;
+      color: #0f172a;
+      padding: 1px 7px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .sh-btn.primary .sh-cnt { background: rgba(255,255,255,0.25); color: #ffffff; }
+
+    #site-language {
+      appearance: none;
+      -webkit-appearance: none;
+      background-color: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 999px;
+      padding: 8px 30px 8px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+      cursor: pointer;
+      outline: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
+
+    /* 2. 히어로 검색 영역 & 4대 필터 바 */
+    .sh-hero {
+      background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
+      padding: 52px 24px 72px;
+      text-align: center;
+      position: relative;
+    }
+    .sh-hero h1 { font-size: 32px; font-weight: 800; color: #0f172a; margin: 0 0 10px; }
+    .sh-hero h1 span { color: #1d4ed8; }
+    .sh-hero p { font-size: 15px; color: #475569; margin: 0 0 28px; }
+
+    .sh-search-box {
+      max-width: 680px;
+      margin: 0 auto 18px;
+      background: #ffffff;
+      border: 2px solid #2563eb;
+      border-radius: 999px;
+      padding: 6px 8px 6px 20px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.12);
+    }
+    .sh-search-box input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 15px;
+      color: #0f172a;
+      background: transparent;
+    }
+    .sh-search-clear {
+      border: none;
+      background: #e2e8f0;
+      color: #475569;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      font-size: 12px;
+      cursor: pointer;
+      margin-right: 8px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .sh-search-box button.search-submit {
+      background: #1d4ed8;
+      color: #ffffff;
+      border: none;
+      border-radius: 999px;
+      padding: 11px 26px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .sh-search-box button.search-submit:hover { background: #1e40af; }
+
+    .sh-popular-tags {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      color: #475569;
+    }
+    .sh-tag-pill {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      padding: 5px 13px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .sh-tag-pill:hover { border-color: #2563eb; color: #1d4ed8; background: #eff6ff; transform: translateY(-1px); }
+
+    .sh-filter-bar {
+      max-width: 1120px;
+      margin: -34px auto 36px;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 16px 24px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.07);
+      border: 1px solid #e2e8f0;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+      position: relative;
+      z-index: 10;
+    }
+    .sh-filter-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-right: 1px solid #e2e8f0;
+      padding-right: 14px;
+    }
+    .sh-filter-item:nth-child(4) { border-right: none; }
+    .sh-filter-label { font-size: 13px; font-weight: 700; color: #475569; white-space: nowrap; }
+    .sh-filter-select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #0f172a;
+      background: #f8fafc;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* 3. 메인 컨테이너 & 섹션 공통 */
+    .sh-container { max-width: 1120px; margin: 0 auto; padding: 0 20px 60px; }
+    .sh-section { margin-bottom: 48px; }
+    .sh-sec-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .sh-sec-title { font-size: 22px; font-weight: 800; color: #0f172a; margin: 0; }
+    .sh-sec-title span { color: #1d4ed8; }
+    .sh-sec-desc { font-size: 13.5px; color: #64748b; margin: 5px 0 0; }
+
+    /* 4. 분야별로 찾아보기 & 폴드형(아코디언) 공고 리스트 */
+    .sh-cat-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 900px) { .sh-cat-grid { grid-template-columns: repeat(4, 1fr); } .sh-filter-bar { grid-template-columns: 1fr 1fr; } }
+    .sh-cat-card {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 18px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .sh-cat-card:hover, .sh-cat-card.active {
+      border-color: #2563eb;
+      background: #eff6ff;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.14);
+    }
+    .sh-cat-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      margin: 0 auto 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    .sh-cat-name { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+    .sh-cat-count { font-size: 12px; font-weight: 600; color: #64748b; }
+    .sh-cat-card.active .sh-cat-count { color: #1d4ed8; font-weight: 800; }
+
+    /* 폴드형(Foldable) 리스트 컨테이너 */
+    .sh-fold-panel {
+      display: none;
+      margin-top: 20px;
+      background: #ffffff;
+      border-radius: 20px;
+      border: 2px solid #bfdbfe;
+      padding: 24px 28px;
+      box-shadow: 0 12px 32px rgba(37, 99, 235, 0.08);
+      animation: slideDown 0.22s ease-out;
+    }
+    .sh-fold-panel.open { display: block; }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .sh-board-list { list-style: none; margin: 0; padding: 0; }
+    .sh-board-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 10px;
+      border-bottom: 1px solid #f1f5f9;
+      cursor: pointer;
+      transition: background 0.15s;
+      gap: 14px;
+    }
+    .sh-board-row:last-child { border-bottom: none; }
+    .sh-board-row:hover { background: #f8fafc; border-radius: 10px; }
+    .sh-board-cat {
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+    .sh-board-title {
+      flex: 1;
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f172a;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .sh-board-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12.5px;
+      color: #64748b;
+      white-space: nowrap;
+    }
+
+    /* 10개 단위 페이지네이션 */
+    .sh-pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin-top: 22px;
+      padding-top: 16px;
+      border-top: 1px solid #f1f5f9;
+      flex-wrap: wrap;
+    }
+    .sh-page-btn {
+      min-width: 34px;
+      height: 34px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .sh-page-btn:hover:not(:disabled) { border-color: #2563eb; color: #1d4ed8; background: #eff6ff; }
+    .sh-page-btn.active { background: #1d4ed8; color: #ffffff; border-color: #1d4ed8; }
+    .sh-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* 5. 이런 것도 있어요 (AI 맞춤 추천 섹션) */
+    .sh-persona-box {
+      background: linear-gradient(90deg, #eff6ff 0%, #f5f3ff 100%);
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 12px 18px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13.5px;
+      color: #1e3a8a;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .sh-rec-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 900px) { .sh-rec-grid { grid-template-columns: repeat(2, 1fr); } }
+    .sh-rec-card {
+      border-radius: 18px;
+      padding: 20px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 225px;
+      border: 1px solid rgba(0,0,0,0.06);
+      user-select: none;
+    }
+    .sh-rec-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
+    .sh-rec-card.theme-0 { background: #eff6ff; color: #1e3a8a; }
+    .sh-rec-card.theme-1 { background: #ecfdf5; color: #065f46; }
+    .sh-rec-card.theme-2 { background: #fffbeb; color: #92400e; }
+    .sh-rec-card.theme-3 { background: #f5f3ff; color: #5b21b6; }
+
+    .sh-rec-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 800;
+      background: rgba(255,255,255,0.88);
+      margin-bottom: 10px;
+      max-width: calc(100% - 40px);
+    }
+    .sh-rec-title {
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.4;
+      margin: 0 0 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .sh-rec-reason {
+      font-size: 12px;
+      opacity: 0.9;
+      line-height: 1.45;
+      margin-bottom: 12px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .sh-rec-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 700;
+      padding-top: 10px;
+      border-top: 1px solid rgba(0,0,0,0.08);
+    }
+
+    .sh-heart-btn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.94);
+      border: 1px solid rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      z-index: 10;
+      transition: transform 0.15s;
+    }
+    .sh-heart-btn:hover { transform: scale(1.15); }
+
+    /* 6. 모달 창 */
+    .sh-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(3px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      padding: 20px;
+    }
+    .sh-modal-overlay.open { display: flex; }
+    .sh-modal-box {
+      background: #ffffff;
+      border-radius: 20px;
+      max-width: 680px;
+      width: 100%;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+      overflow: hidden;
+    }
+    .sh-modal-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .sh-modal-body {
+      padding: 22px 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .sh-modal-item {
+      padding: 15px;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      background: #f8fafc;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .sh-modal-item:hover { border-color: #60a5fa; background: #eff6ff; }
+
+    /* 해시태그 칩 스타일 */
+    .sh-hashtag-chip {
+      background: #f1f5f9;
+      color: #2563eb;
+      border: 1px solid #cbd5e1;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .sh-hashtag-chip:hover { background: #dbeafe; border-color: #93c5fd; }
+
+    /* 7. 하단 토스트 알림 (Toast Notification) */
+    .sh-toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: rgba(15, 23, 42, 0.92);
+      color: #ffffff;
+      padding: 12px 22px;
+      border-radius: 999px;
+      font-size: 13.5px;
+      font-weight: 700;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      z-index: 100000;
+      opacity: 0;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+    }
+    .sh-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* 푸터 */
+    .sh-footer {
+      border-top: 1px solid #e2e8f0;
+      background: #ffffff;
+      padding: 32px 24px;
+      font-size: 12.5px;
+      color: #64748b;
+    }
+    .sh-footer-inner { max-width: 1120px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+  </style>
+</head>
+<body>
+
+  <!-- 1. 상단 헤더 -->
+  <header class="sh-topbar">
+    <div class="sh-topbar-inner">
+      <div class="sh-logo" onclick="window.resetAllFilters()">
+        <span class="sh-logo-dots"><span class="sh-dot-orange"></span><span class="sh-dot-blue"></span></span>
+        <span>시흥 <span style="color:#ff7a00;">쏙쏙</span></span>
+      </div>
+
+      <div class="sh-header-controls">
+        <button type="button" class="sh-btn" onclick="window.openRecentModal()">
+          🕒 <span id="lbl-recent">최근 본 공고</span> <span class="sh-cnt" id="cnt-recent">0</span>
+        </button>
+        <button type="button" class="sh-btn primary" onclick="window.openBookmarkModal()">
+          ❤️ <span id="lbl-bookmark">찜한 공고</span> <span class="sh-cnt" id="cnt-bookmark">0</span>
+        </button>
+        <select id="site-language" onchange="window.changeLanguage(this.value)">
+          <option value="ko">🇰🇷 한국어</option>
+          <option value="en">🇺🇸 English</option>
+          <option value="zh-CN">🇨🇳 简体中文</option>
+          <option value="zh-TW">🇹🇼 繁體中文</option>
+          <option value="ja">🇯🇵 日本語</option>
+          <option value="vi">🇻🇳 Tiếng Việt</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- 2. 히어로 검색 영역 -->
+  <section class="sh-hero">
+    <h1 id="lbl-hero-title"><span>시흥시</span>의 다양한 공공사업과 소식을 찾아보세요.</h1>
+    <p id="lbl-hero-sub">시민을 위한 지원사업, 문화행사, 교육프로그램 등 나에게 꼭 필요한 정보를 AI가 찾아드립니다.</p>
+
+    <div class="sh-search-box">
+      <span style="font-size:18px; margin-right:10px;">🔍</span>
+      <input type="text" id="sh-search-input" placeholder="관심 있는 지원사업, 교육, 키워드를 검색해 보세요" oninput="window.toggleClearBtn()" onkeydown="if(event.key==='Enter') window.triggerSearch()">
+      <button type="button" id="sh-search-clear-btn" class="sh-search-clear" onclick="window.clearSearchInput()">✕</button>
+      <button type="button" id="lbl-search-btn" class="search-submit" onclick="window.triggerSearch()">검색</button>
+    </div>
+
+    <div class="sh-popular-tags">
+      <strong id="lbl-popular">인기 키워드</strong>
+      <span class="sh-tag-pill" id="pop-tag-0" onclick="window.quickKeyword('청년')"># 청년 지원</span>
+      <span class="sh-tag-pill" id="pop-tag-1" onclick="window.quickKeyword('외국인')"># 외국인 주민</span>
+      <span class="sh-tag-pill" id="pop-tag-2" onclick="window.quickKeyword('소상공인')"># 소상공인</span>
+      <span class="sh-tag-pill" id="pop-tag-3" onclick="window.quickKeyword('교육')"># 교육·강좌</span>
+      <span class="sh-tag-pill" id="pop-tag-4" onclick="window.quickKeyword('주거')"># 주거비 지원</span>
+    </div>
+  </section>
+
+  <!-- 3. 4대 드롭다운 필터 바 (내부 옵션까지 6개국어 자동 변환!) -->
+  <div class="sh-filter-bar">
+    <div class="sh-filter-item">
+      <span class="sh-filter-label" id="lbl-f-age">👤 나이</span>
+      <select id="filter-age" class="sh-filter-select" onchange="window.onFilterChange()">
+        <option value="전체">전체</option>
+        <option value="청년">청년 (19~39)</option>
+        <option value="영유아·아동">영유아·아동</option>
+        <option value="어르신">어르신 (65+)</option>
+      </select>
+    </div>
+    <div class="sh-filter-item">
+      <span class="sh-filter-label" id="lbl-f-nat">🌐 국적/대상</span>
+      <select id="filter-nat" class="sh-filter-select" onchange="window.onFilterChange()">
+        <option value="전체">전체</option>
+        <option value="외국인">외국인 주민</option>
+        <option value="다문화">다문화가족</option>
+      </select>
+    </div>
+    <div class="sh-filter-item">
+      <span class="sh-filter-label" id="lbl-f-cat">☷ 카테고리</span>
+      <select id="filter-cat" class="sh-filter-select" onchange="window.onFilterChange()">
+        <option value="전체">전체</option>
+        <option value="청년">청년</option>
+        <option value="외국인">외국인</option>
+        <option value="다문화">다문화</option>
+        <option value="소상공인">소상공인</option>
+        <option value="가족">가족·복지</option>
+        <option value="어르신">어르신</option>
+        <option value="교육">교육</option>
+        <option value="문화·행사">문화·행사</option>
+      </select>
+    </div>
+    <div class="sh-filter-item">
+      <span class="sh-filter-label" id="lbl-f-reg">📍 관할지역</span>
+      <select id="filter-reg" class="sh-filter-select" onchange="window.onFilterChange()">
+        <option value="전체">전체 (시흥+경기)</option>
+        <option value="시흥시">시흥시 직접 사업</option>
+        <option value="경기도 전체">경기도 광역 사업</option>
+      </select>
+    </div>
+    <button type="button" class="sh-btn" onclick="window.resetAllFilters()" id="lbl-reset-btn">↻ 초기화</button>
+  </div>
+
+  <!-- 메인 콘텐츠 영역 -->
+  <main class="sh-container">
+
+    <!-- 4. 분야별로 찾아보기 + 폴드형(Fold) 페이지네이션 리스트 -->
+    <section class="sh-section">
+      <div class="sh-sec-head">
+        <div>
+          <h2 class="sh-sec-title" id="lbl-cat-sec-title">분야별로 찾아보기</h2>
+          <p class="sh-sec-desc" id="lbl-cat-sec-desc">관심 있는 분야를 클릭하면 아래에 해당 공고 리스트가 펼쳐집니다.</p>
+        </div>
+      </div>
+
+      <!-- 8대 분야 아이콘 그리드 -->
+      <div class="sh-cat-grid" id="sh-category-grid"></div>
+
+      <!-- 분야 선택 또는 검색 시 펼쳐지는 폴드(Fold) 리스트 영역 -->
+      <div class="sh-fold-panel" id="sh-fold-list-panel">
+        <div class="sh-sec-head" style="margin-bottom:14px; padding-bottom:14px; border-bottom:2px solid #0f172a;">
+          <div>
+            <h3 class="sh-sec-title" id="lbl-board-title" style="font-size:19px;">선택된 분야 공고 목록</h3>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <!-- 정렬 옵션 추가 -->
+            <select id="sh-sort-select" class="sh-filter-select" style="width:auto; padding:6px 10px; font-size:12.5px;" onchange="window.changeSortOrder(this.value)">
+              <option value="latest">최신 기준일순</option>
+              <option value="siheung">시흥시 직접 우선</option>
+              <option value="title">제목 가나다순</option>
+            </select>
+            <button type="button" class="sh-btn primary" id="tab-all" onclick="window.filterRegionTab('전체')">전체</button>
+            <button type="button" class="sh-btn" id="tab-siheung" onclick="window.filterRegionTab('시흥시')">시흥시 직접</button>
+            <button type="button" class="sh-btn" id="tab-gg" onclick="window.filterRegionTab('경기도 전체')">경기도 광역</button>
+            <button type="button" class="sh-btn" id="lbl-fold-close" onclick="window.closeFoldPanel()" style="background:#f1f5f9;">✕ 리스트 접기</button>
+          </div>
+        </div>
+
+        <ul class="sh-board-list" id="sh-notice-board"></ul>
+        <div class="sh-pagination" id="sh-pagination"></div>
+      </div>
+    </section>
+
+    <!-- 5. 이런 것도 있어요! (실시간 AI 맞춤 추천 섹션) -->
+    <section class="sh-section">
+      <div class="sh-sec-head">
+        <div>
+          <h2 class="sh-sec-title" id="lbl-rec-sec-title">💡 이런 것도 있어요! <span>AI 맞춤 추천 공고</span></h2>
+          <p class="sh-sec-desc" id="lbl-rec-sec-desc">방금 클릭·검색·찜하신 활동을 분석해 AI가 가장 적합한 공고를 실시간으로 추천합니다.</p>
+        </div>
+        <button type="button" class="sh-btn" onclick="window.resetBehaviorContext()" id="lbl-ctx-reset">🔄 AI 추천 맥락 초기화</button>
+      </div>
+
+      <div class="sh-persona-box">
+        <div id="sh-persona-text"></div>
+        <span id="lbl-zero-pii-badge" style="font-size:12px; background:#dbeafe; color:#1e40af; padding:3px 10px; border-radius:999px; font-weight:700;">✨ AI 실시간 맞춤 추천</span>
+      </div>
+
+      <div class="sh-rec-grid" id="sh-recommend-grid"></div>
+    </section>
+
+  </main>
+
+  <!-- 6. 모달 창 (공고 상세 + TTS 음성 안내 + 해시태그 검색 + 클립보드 공유) -->
+  <div id="sh-modal" class="sh-modal-overlay" onclick="if(event.target===this) window.closeShModal()">
+    <div class="sh-modal-box">
+      <div class="sh-modal-header">
+        <h3 id="sh-modal-title" style="margin:0; font-size:17px; font-weight:800; color:#0f172a; flex:1; line-height:1.4;">상세 정보</h3>
+        <div id="sh-modal-header-actions" style="display:flex; gap:6px;"></div>
+        <button type="button" onclick="window.closeShModal()" style="border:none; background:none; font-size:26px; cursor:pointer; color:#64748b; line-height:1;">&times;</button>
+      </div>
+      <div id="sh-modal-body" class="sh-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- 7. 토스트 알림창 -->
+  <div id="sh-toast" class="sh-toast">알림</div>
+
+  <!-- 푸터 -->
+  <footer class="sh-footer">
+    <div class="sh-footer-inner">
+      <div id="lbl-footer-copy">(14988) 경기도 시흥시 시청로 20 (장현동) 시흥시청 · 경기공공데이터 OpenAPI 및 AI 기반 맞춤형 공고 필터링 웹서비스</div>
+      <div style="font-weight:800; font-size:15px; color:#94a3b8;">시흥 쏙쏙</div>
+    </div>
+  </footer>
+
+  <!-- 🚀 통합 스크립트 -->
+  <script>
+    (function() {
+      let contextId = localStorage.getItem('sh_context_id');
+      if (!contextId) {
+        contextId = 'anon-' + Math.random().toString(36).substring(2, 10);
+        localStorage.setItem('sh_context_id', contextId);
+      }
+
+      let currentLang = localStorage.getItem('sh_lang') || 'ko';
+      let bookmarks = JSON.parse(localStorage.getItem('sh_bookmarks') || '[]');
+      let recentViews = JSON.parse(localStorage.getItem('sh_recent_views') || '[]');
+
+      let allNotices = [];
+      let currentPage = 1;
+      const pageSize = 10;
+      let sortOrder = 'latest';
+      let isFoldOpen = false;
+
+      let categoryCounts = {};
+      let currentFilters = { age: '전체', nationality: '전체', category: '전체', region: '전체', keyword: '' };
+      let toastTimer = null;
+
+      const noticeDataMap = {};
+
+      const CATEGORIES = [
+        { key: '청년', icon: '🎓', bg: '#eff6ff', name: { ko: '청년', en: 'Youth', 'zh-CN': '青年', 'zh-TW': '青年', ja: '青年', vi: 'Thanh niên' } },
+        { key: '외국인', icon: '🌏', bg: '#ecfdf5', name: { ko: '외국인', en: 'Foreigner', 'zh-CN': '外国人', 'zh-TW': '外國人', ja: '外国人', vi: 'Người nước ngoài' } },
+        { key: '다문화', icon: '🤝', bg: '#f0fdf4', name: { ko: '다문화', en: 'Multicultural', 'zh-CN': '多文化', 'zh-TW': '多文化', ja: '多文化', vi: 'Đa văn hóa' } },
+        { key: '소상공인', icon: '🏪', bg: '#fffbeb', name: { ko: '소상공인', en: 'Small Biz', 'zh-CN': '小工商业', 'zh-TW': '小工商業', ja: '小規模事業者', vi: 'Tiểu thương' } },
+        { key: '가족', icon: '👨‍👩‍👧‍👦', bg: '#fdf2f8', name: { ko: '가족', en: 'Family', 'zh-CN': '家庭', 'zh-TW': '家庭', ja: '家族', vi: 'Gia đình' } },
+        { key: '어르신', icon: '🧓', bg: '#fff7ed', name: { ko: '어르신', en: 'Seniors', 'zh-CN': '老年人', 'zh-TW': '長者', ja: '高齢者', vi: 'Người cao tuổi' } },
+        { key: '교육', icon: '📚', bg: '#eef2ff', name: { ko: '교육', en: 'Education', 'zh-CN': '教育', 'zh-TW': '教育', ja: '教育', vi: 'Giáo dục' } },
+        { key: '문화·행사', icon: '🎭', bg: '#f5f3ff', name: { ko: '문화·행사', en: 'Culture', 'zh-CN': '文化活动', 'zh-TW': '文化活動', ja: '文化・行事', vi: 'Văn hóa' } }
+      ];
+
+      function getCategoryName(korCat, lang) {
+        if (korCat === '전체') {
+          return { ko: '전체 분야', en: 'All Categories', 'zh-CN': '全部领域', 'zh-TW': '全部領域', ja: '全分野', vi: 'Tất cả danh mục' }[lang] || '전체';
+        }
+        const found = CATEGORIES.find(c => c.key === korCat);
+        return found ? (found.name[lang] || found.name['ko']) : korCat;
+      }
+
+      const I18N = {
+        'ko': {
+          recent: '최근 본 공고', bookmark: '찜한 공고',
+          heroTitle: '<span>시흥시</span>의 다양한 공공사업과 소식을 찾아보세요.',
+          heroSub: '시민을 위한 지원사업, 문화행사, 교육프로그램 등 나에게 꼭 필요한 정보를 AI가 찾아드립니다.',
+          searchPh: '관심 있는 지원사업, 교육, 키워드를 검색해 보세요', searchBtn: '검색', popular: '인기 키워드',
+          popTags: ['# 청년 지원', '# 외국인 주민', '# 소상공인', '# 교육·강좌', '# 주거비 지원'],
+          fAge: '👤 나이', fNat: '🌐 국적/대상', fCat: '☷ 카테고리', fReg: '📍 관할지역', reset: '↻ 초기화',
+          optAll: '전체', optYouth: '청년 (19~39)', optChild: '영유아·아동', optSenior: '어르신 (65+)',
+          optForeign: '외국인 주민', optMulti: '다문화가족', optRegAll: '전체 (시흥+경기)', optRegSh: '시흥시 직접', optRegGg: '경기도 광역',
+          sortLatest: '최신 기준일순', sortSh: '시흥시 직접 우선', sortTitle: '제목 가나다순',
+          catTitle: '분야별로 찾아보기', catDesc: '관심 있는 분야를 클릭하면 아래에 해당 공고 리스트가 펼쳐집니다.',
+          recTitle: '💡 이런 것도 있어요! <span>AI 맞춤 추천 공고</span>',
+          recDesc: '방금 클릭·검색·찜하신 활동을 분석해 AI가 가장 적합한 공고를 실시간으로 추천합니다.',
+          ctxReset: '🔄 AI 추천 맥락 초기화', boardTitle: '공고 목록', foldClose: '✕ 리스트 접기',
+          tabAll: '전체', tabSh: '시흥시 직접', tabGg: '경기도 광역',
+          aiBadge: '🤖 AI 추천', viewDetail: '상세보기 →', zeroPiiBadge: '✨ AI 실시간 맞춤 추천',
+          aiReasonLabel: 'AI 맞춤 추천 이유', aiSummaryLabel: 'AI 핵심 요약', detailContentLabel: '[상세 내용]',
+          ttsPlay: '🔊 음성으로 듣기', ttsStop: '⏹️ 읽기 중지', copyBtn: '📋 링크·요약 복사',
+          deptLabel: '소관기관', supportLabel: '지원형태', dateLabel: '기준일', delBtn: '삭제', clearAllBtn: '🗑️ 전체 비우기',
+          emptyModal: '아직 내역이 없습니다. 관심 있는 공고를 클릭하거나 하트(🤍)를 눌러보세요!',
+          goOrigin: '공고 상세 보기 (원문 페이지 이동)', save: '🤍 공고 찜하기', saved: '❤️ 찜 완료 (해제)', unit: '건',
+          toastSaved: '❤️ 찜한 공고에 추가되었습니다.', toastRemoved: '찜 목록에서 해제되었습니다.',
+          toastCopied: '📋 공고 요약 및 원문 링크가 클립보드에 복사되었습니다!', toastCtxReset: '🔄 AI 추천 맥락이 초기화되었습니다.'
+        },
+        'en': {
+          recent: 'Recently Viewed', bookmark: 'Saved',
+          heroTitle: 'Explore Public Services & Support in <span>Siheung City</span>',
+          heroSub: 'AI helps you easily find and translate subsidies, education, and welfare programs tailored to you.',
+          searchPh: 'Search by keyword (e.g., youth, housing, education)...', searchBtn: 'Search', popular: 'Popular',
+          popTags: ['# Youth Support', '# Foreign Residents', '# Small Business', '# Education', '# Housing Aid'],
+          fAge: '👤 Age', fNat: '🌐 Target', fCat: '☷ Category', fReg: '📍 Region', reset: '↻ Reset',
+          optAll: 'All', optYouth: 'Youth (19~39)', optChild: 'Children', optSenior: 'Seniors (65+)',
+          optForeign: 'Foreign Residents', optMulti: 'Multicultural', optRegAll: 'All (Siheung+GG)', optRegSh: 'Siheung City', optRegGg: 'Gyeonggi-do',
+          sortLatest: 'Sort: Latest', sortSh: 'Sort: Siheung First', sortTitle: 'Sort: A-Z',
+          catTitle: 'Browse by Category', catDesc: 'Click any category below to unfold and browse matching public services.',
+          recTitle: '💡 You May Also Like! <span>AI Smart Picks</span>',
+          recDesc: 'AI analyzes what you recently clicked, searched, and saved to recommend the best matches in real time.',
+          ctxReset: '🔄 Reset AI Recommendations', boardTitle: 'Services List', foldClose: '✕ Fold List',
+          tabAll: 'All', tabSh: 'Siheung City', tabGg: 'Gyeonggi-do',
+          aiBadge: '🤖 AI Match', viewDetail: 'Details →', zeroPiiBadge: '✨ Live AI Recommendations',
+          aiReasonLabel: 'Why AI Recommended This', aiSummaryLabel: 'AI Key Summary', detailContentLabel: 'View Original Korean Text (원문 보기)',
+          ttsPlay: '🔊 Listen (TTS)', ttsStop: '⏹️ Stop Audio', copyBtn: '📋 Copy Summary',
+          deptLabel: 'Agency', supportLabel: 'Support Type', dateLabel: 'Updated', delBtn: 'Delete', clearAllBtn: '🗑️ Clear All',
+          emptyModal: 'No items yet. Click on any notice or press the heart (🤍) button!',
+          goOrigin: 'View Official Notice Page (External Link)', save: '🤍 Save Notice', saved: '❤️ Saved', unit: ' items',
+          toastSaved: '❤️ Added to your saved notices.', toastRemoved: 'Removed from saved list.',
+          toastCopied: '📋 Summary and link copied to clipboard!', toastCtxReset: '🔄 AI recommendation context reset.'
+        },
+        'zh-CN': {
+          recent: '最近浏览', bookmark: '已收藏',
+          heroTitle: '探索<span>始兴市</span>的各类公共服务与支援项目',
+          heroSub: 'AI为您智能寻找并翻译最适合您的政府补贴、教育及福利政策。',
+          searchPh: '请输入感兴趣的支援项目或关键词...', searchBtn: '搜索', popular: '热门搜索',
+          popTags: ['# 青年支援', '# 外国居民', '# 小工商业者', '# 教育课程', '# 住房补贴'],
+          fAge: '👤 年龄', fNat: '🌐 对象', fCat: '☷ 类别', fReg: '📍 地区', reset: '↻ 重置',
+          optAll: '全部', optYouth: '青年 (19~39岁)', optChild: '婴幼儿·儿童', optSenior: '老年人 (65岁+)',
+          optForeign: '外国居民', optMulti: '多文化家庭', optRegAll: '全部 (始兴+京畿)', optRegSh: '始兴市直属', optRegGg: '京畿道广域',
+          sortLatest: '按最新日期', sortSh: '始兴市优先', sortTitle: '按标题排序',
+          catTitle: '按领域查找', catDesc: '点击下方任意领域图标，即可展开查看相关公告列表。',
+          recTitle: '💡 猜您喜欢！<span>AI 智能定制推荐</span>',
+          recDesc: 'AI实时分析您刚才点击、搜索和收藏的内容，为您推荐最合适的公告。',
+          ctxReset: '🔄 重置AI推荐', boardTitle: '公告列表', foldClose: '✕ 收起列表',
+          tabAll: '全部', tabSh: '始兴市直属', tabGg: '京畿道广域',
+          aiBadge: '🤖 AI 推荐度', viewDetail: '查看详情 →', zeroPiiBadge: '✨ AI 实时智能推荐',
+          aiReasonLabel: 'AI 推荐理由', aiSummaryLabel: 'AI 核心摘要', detailContentLabel: '查看韩语原文详情 (한국어 원문)',
+          ttsPlay: '🔊 语音朗读', ttsStop: '⏹️ 停止朗读', copyBtn: '📋 复制摘要与链接',
+          deptLabel: '主管机构', supportLabel: '支援形式', dateLabel: '基准日', delBtn: '删除', clearAllBtn: '🗑️ 清空列表',
+          emptyModal: '暂无记录。请点击公告或按心形(🤍)图标进行收藏！',
+          goOrigin: '查看官方公告详情页 (跳转原文)', save: '🤍 收藏公告', saved: '❤️ 已收藏', unit: '件',
+          toastSaved: '❤️ 已添加到收藏夹。', toastRemoved: '已取消收藏。',
+          toastCopied: '📋 公告摘要及链接已复制到剪贴板！', toastCtxReset: '🔄 AI 推荐记录已重置。'
+        },
+        'zh-TW': {
+          recent: '最近瀏覽', bookmark: '已收藏',
+          heroTitle: '探索<span>始興市</span>的各類公共服務與支援項目',
+          heroSub: 'AI為您智慧尋找並翻譯最適合您的政府補貼、教育及福利政策。',
+          searchPh: '請輸入感興趣的支援項目或關鍵字...', searchBtn: '搜尋', popular: '熱門搜尋',
+          popTags: ['# 青年支援', '# 外國居民', '# 小工商業', '# 教育課程', '# 住房補貼'],
+          fAge: '👤 年齡', fNat: '🌐 對象', fCat: '☷ 類別', fReg: '📍 地區', reset: '↻ 重置',
+          optAll: '全部', optYouth: '青年 (19~39歲)', optChild: '嬰幼兒·兒童', optSenior: '長者 (65歲+)',
+          optForeign: '外國居民', optMulti: '多文化家庭', optRegAll: '全部 (始興+京畿)', optRegSh: '始興市直屬', optRegGg: '京畿道廣域',
+          sortLatest: '按最新日期', sortSh: '始興市優先', sortTitle: '按標題排序',
+          catTitle: '按領域查找', catDesc: '點擊下方任意領域圖標，即可展開查看相關公告列表。',
+          recTitle: '💡 猜您喜歡！<span>AI 智慧定製推薦</span>',
+          recDesc: 'AI即時分析您剛才點擊、搜尋和收藏的內容，為您推薦最合適的公告。',
+          ctxReset: '🔄 重置AI推薦', boardTitle: '公告列表', foldClose: '✕ 收起列表',
+          tabAll: '全部', tabSh: '始興市直屬', tabGg: '京畿道廣域',
+          aiBadge: '🤖 AI 推薦度', viewDetail: '查看詳情 →', zeroPiiBadge: '✨ AI 即時智慧推薦',
+          aiReasonLabel: 'AI 推薦理由', aiSummaryLabel: 'AI 核心摘要', detailContentLabel: '查看韓語原文詳情 (한국어 원문)',
+          ttsPlay: '🔊 語音朗讀', ttsStop: '⏹️ 停止朗讀', copyBtn: '📋 複製摘要與連結',
+          deptLabel: '主管機構', supportLabel: '支援形式', dateLabel: '基準日', delBtn: '刪除', clearAllBtn: '🗑️ 清空列表',
+          emptyModal: '暫無記錄。請點擊公告或按心形(🤍)圖標進行收藏！',
+          goOrigin: '查看官方公告詳情頁 (跳轉原文)', save: '🤍 收藏公告', saved: '❤️ 已收藏', unit: '件',
+          toastSaved: '❤️ 已添加到收藏夾。', toastRemoved: '已取消收藏。',
+          toastCopied: '📋 公告摘要及連結已複製到剪貼簿！', toastCtxReset: '🔄 AI 推薦記錄已重置。'
+        },
+        'ja': {
+          recent: '最近見た公告', bookmark: 'お気に入り',
+          heroTitle: '<span>始興市</span>の多様な公共事業とお知らせを検索',
+          heroSub: '市民のための支援事業、文化行事、教育プログラムなど、AIがあなたにぴったりの情報を探します。',
+          searchPh: '関心のある支援事業やキーワードを入力してください', searchBtn: '検索', popular: '人気タグ',
+          popTags: ['# 青年支援', '# 外国人住民', '# 小規模事業者', '# 教育・講座', '# 住居費支援'],
+          fAge: '👤 年齢', fNat: '🌐 対象', fCat: '☷ 分野', fReg: '📍 地域', reset: '↻ リセット',
+          optAll: 'すべて', optYouth: '青年 (19~39歳)', optChild: '乳幼児・児童', optSenior: '高齢者 (65歳+)',
+          optForeign: '外国人住民', optMulti: '多文化家族', optRegAll: 'すべて (始興+京畿)', optRegSh: '始興市直接', optRegGg: '京畿道広域',
+          sortLatest: '最新基準日順', sortSh: '始興市優先', sortTitle: 'タイトル順',
+          catTitle: '分野別に探す', catDesc: '関心のある分野をクリックすると、下に該当する公告リストが開きます。',
+          recTitle: '💡 こちらもおすすめ！<span>AI カスタム推薦公告</span>',
+          recDesc: '今クリック・検索・お気に入りした活動を分析し、AIが最適な公告をリアルタイムでおすすめします。',
+          ctxReset: '🔄 AIおすすめ初期化', boardTitle: '公告一覧', foldClose: '✕ リストを閉じる',
+          tabAll: 'すべて', tabSh: '始興市直接', tabGg: '京畿道広域',
+          aiBadge: '🤖 AI おすすめ', viewDetail: '詳細を見る →', zeroPiiBadge: '✨ AI リアルタイム推薦',
+          aiReasonLabel: 'AI おすすめ理由', aiSummaryLabel: 'AI 核心要約', detailContentLabel: '韓国語原文を表示 (한국어 원문)',
+          ttsPlay: '🔊 音声で聞く', ttsStop: '⏹️ 停止', copyBtn: '📋 要約・リンクをコピー',
+          deptLabel: '所管機関', supportLabel: '支援形態', dateLabel: '基準日', delBtn: '削除', clearAllBtn: '🗑️ すべて削除',
+          emptyModal: 'まだ履歴がありません。公告をクリックするかハート(🤍)を押してください！',
+          goOrigin: '公式ページで詳細を見る (外部リンク)', save: '🤍 お気に入り追加', saved: '❤️ 保存済み', unit: '件',
+          toastSaved: '❤️ お気に入りに追加しました。', toastRemoved: 'お気に入りから解除しました。',
+          toastCopied: '📋 要約とリンクをクリップボードにコピーしました！', toastCtxReset: '🔄 AIおすすめ履歴を初期化しました。'
+        },
+        'vi': {
+          recent: 'Đã xem gần đây', bookmark: 'Đã lưu',
+          heroTitle: 'Khám phá các dịch vụ công & hỗ trợ tại <span>Siheung</span>',
+          heroSub: 'AI giúp bạn dễ dàng tìm kiếm và dịch các chương trình hỗ trợ, giáo dục, phúc lợi phù hợp nhất.',
+          searchPh: 'Nhập từ khóa chương trình hỗ trợ bạn quan tâm...', searchBtn: 'Tìm kiếm', popular: 'Phổ biến',
+          popTags: ['# Hỗ trợ thanh niên', '# Cư dân nước ngoài', '# Tiểu thương', '# Giáo dục', '# Hỗ trợ nhà ở'],
+          fAge: '👤 Độ tuổi', fNat: '🌐 Đối tượng', fCat: '☷ Danh mục', fReg: '📍 Khu vực', reset: '↻ Đặt lại',
+          optAll: 'Tất cả', optYouth: 'Thanh niên (19~39)', optChild: 'Trẻ em', optSenior: 'Người cao tuổi (65+)',
+          optForeign: 'Người nước ngoài', optMulti: 'Gia đình đa văn hóa', optRegAll: 'Tất cả (Siheung+GG)', optRegSh: 'TP. Siheung', optRegGg: 'Tỉnh Gyeonggi',
+          sortLatest: 'Mới nhất', sortSh: 'Ưu tiên Siheung', sortTitle: 'Theo tên A-Z',
+          catTitle: 'Tìm theo lĩnh vực', catDesc: 'Nhấp vào bất kỳ lĩnh vực nào bên dưới để mở danh sách thông báo tương ứng.',
+          recTitle: '💡 Có thể bạn quan tâm! <span>Gợi ý thông minh từ AI</span>',
+          recDesc: 'AI phân tích những gì bạn vừa nhấp, tìm kiếm và lưu để gợi ý thông báo phù hợp nhất theo thời gian thực.',
+          ctxReset: '🔄 Đặt lại gợi ý AI', boardTitle: 'Danh sách thông báo', foldClose: '✕ Thu gọn',
+          tabAll: 'Tất cả', tabSh: 'TP. Siheung', tabGg: 'Tỉnh Gyeonggi',
+          aiBadge: '🤖 AI Đề xuất', viewDetail: 'Xem chi tiết →', zeroPiiBadge: '✨ Gợi ý AI thời gian thực',
+          aiReasonLabel: 'Lý do AI đề xuất', aiSummaryLabel: 'Tóm tắt AI', detailContentLabel: 'Xem văn bản gốc tiếng Hàn (한국어 원문)',
+          ttsPlay: '🔊 Nghe đọc (TTS)', ttsStop: '⏹️ Dừng đọc', copyBtn: '📋 Sao chép tóm tắt',
+          deptLabel: 'Cơ quan', supportLabel: 'Hình thức', dateLabel: 'Ngày', delBtn: 'Xóa', clearAllBtn: '🗑️ Xóa tất cả',
+          emptyModal: 'Chưa có mục nào. Hãy nhấp vào thông báo hoặc nhấn biểu tượng trái tim (🤍)!',
+          goOrigin: 'Xem trang thông báo gốc (Liên kết chính thức)', save: '🤍 Lưu thông báo', saved: '❤️ Đã lưu', unit: ' mục',
+          toastSaved: '❤️ Đã thêm vào danh sách đã lưu.', toastRemoved: 'Đã xóa khỏi danh sách đã lưu.',
+          toastCopied: '📋 Đã sao chép tóm tắt và liên kết!', toastCtxReset: '🔄 Đã đặt lại gợi ý AI.'
+        }
+      };
+
+      bookmarks.forEach(b => { if (b && b.noticeId) noticeDataMap[b.noticeId] = b; });
+      recentViews.forEach(r => { if (r && r.noticeId) noticeDataMap[r.noticeId] = r; });
+
+      // 🔔 하단 토스트 메시지 출력 함수
+      window.showToast = function(msg) {
+        const toast = document.getElementById('sh-toast');
+        toast.textContent = msg;
+        toast.classList.add('show');
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toast.classList.remove('show');
+        }, 2400);
+      };
+
+      // 🔊 다국어 TTS (음성 안내) 실행 함수
+      window.speakText = function(noticeId) {
+        if (!('speechSynthesis' in window)) {
+          window.showToast('이 브라우저는 음성 안내를 지원하지 않습니다.');
+          return;
+        }
+        window.speechSynthesis.cancel();
+        const notice = noticeDataMap[noticeId];
+        if (!notice) return;
+
+        const textToRead = `${notice.title}. ${notice.aiSummary || notice.cleanContent || ''}`;
+        const utter = new SpeechSynthesisUtterance(textToRead);
+        const langCodeMap = { 'ko': 'ko-KR', 'en': 'en-US', 'zh-CN': 'zh-CN', 'zh-TW': 'zh-TW', 'ja': 'ja-JP', 'vi': 'vi-VN' };
+        utter.lang = langCodeMap[currentLang] || 'ko-KR';
+        utter.rate = 1.0;
+        window.speechSynthesis.speak(utter);
+      };
+
+      window.stopSpeak = function() {
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      };
+
+      // 📋 클립보드 복사 함수
+      window.copyNoticeSummary = function(noticeId) {
+        const notice = noticeDataMap[noticeId];
+        if (!notice) return;
+        const t = I18N[currentLang] || I18N['ko'];
+        const url = notice.url || window.location.href;
+        const copyText = `[시흥 쏙쏙 AI 요약] ${notice.title}\n- ${notice.aiSummary || ''}\n- 상세보기: ${url}`;
+        navigator.clipboard.writeText(copyText).then(() => {
+          window.showToast(t.toastCopied);
+        });
+      };
+
+      function buildLocalizedPersonaText(recData) {
+        const topCatKor = (recData && recData.topInterestCategory) ? recData.topInterestCategory : '청년';
+        const topCatTrans = getCategoryName(topCatKor, currentLang);
+        const kwList = (recData && Array.isArray(recData.recentKeywords)) ? recData.recentKeywords : [];
+        const bmCnt = bookmarks.length;
+
+        if (currentLang === 'ko') {
+          let msg = `최근 관심 있게 보신 <b>[${topCatKor}]</b> 분야를 중심으로 AI가 맞춤 공고를 추천해 드려요.`;
+          if (bmCnt > 0) msg += ` (❤️ 찜한 공고 ${bmCnt}건 반영)`;
+          if (kwList.length > 0) msg += ` · 최근 검색어: '${kwList[0]}'`;
+          return `<strong>🤖 AI 맞춤 분석:</strong> ${msg}`;
+        }
+        if (currentLang === 'en') {
+          return `<strong>🤖 AI Smart Analysis:</strong> Recommending notices focused on your recent interest in <b>[${topCatTrans}]</b>${bmCnt > 0 ? ` · ❤️ Reflecting ${bmCnt} saved item(s)` : ''}.`;
+        }
+        if (currentLang === 'zh-CN') {
+          return `<strong>🤖 AI 智能分析:</strong> 正在以您最近关注的 <b>[${topCatTrans}]</b> 领域为中心为您推荐公告${bmCnt > 0 ? `（❤️ 已反映 ${bmCnt} 项收藏）` : ''}。`;
+        }
+        if (currentLang === 'zh-TW') {
+          return `<strong>🤖 AI 智慧分析:</strong> 正在以您最近關注的 <b>[${topCatTrans}]</b> 領域為中心為您推薦公告${bmCnt > 0 ? `（❤️ 已反映 ${bmCnt} 項收藏）` : ''}。`;
+        }
+        if (currentLang === 'ja') {
+          return `<strong>🤖 AI カスタム分析:</strong> 最近関心を持って見られた <b>[${topCatTrans}]</b> 分野を中心にAIがおすすめしています${bmCnt > 0 ? `（❤️ お気に入り ${bmCnt}件を反映）` : ''}。`;
+        }
+        if (currentLang === 'vi') {
+          return `<strong>🤖 Phân tích AI:</strong> Đang gợi ý các thông báo tập trung vào lĩnh vực <b>[${topCatTrans}]</b> mà bạn quan tâm gần đây${bmCnt > 0 ? ` (❤️ Đã phản ánh ${bmCnt} mục đã lưu)` : ''}.`;
+        }
+        return '';
+      }
+
+      function buildLocalizedMatchReason(item, localizedSummary) {
+        if (currentLang === 'ko') return item.matchReason || localizedSummary;
+        const catTrans = getCategoryName(item.aiCategory || '청년', currentLang);
+        const isSaved = bookmarks.some(b => b.noticeId === item.noticeId);
+        const regTrans = item.region === '시흥시'
+          ? ({ en: 'Siheung City support program', 'zh-CN': '始兴市支援项目', 'zh-TW': '始興市支援項目', ja: '始興市の支援事業', vi: 'Chương trình hỗ trợ của TP. Siheung' }[currentLang])
+          : ({ en: 'Gyeonggi-do support program', 'zh-CN': '京畿道支援项目', 'zh-TW': '京畿道支援項目', ja: '京畿道の支援事業', vi: 'Chương trình hỗ trợ của tỉnh Gyeonggi' }[currentLang]);
+
+        if (currentLang === 'en') return (isSaved ? '❤️ From your saved list · ' : '') + `Recommended because you recently explored [${catTrans}] · ${regTrans}`;
+        if (currentLang === 'zh-CN') return (isSaved ? '❤️ 您收藏的公告 · ' : '') + `因为您最近浏览了【${catTrans}】领域而为您推荐 · ${regTrans}`;
+        if (currentLang === 'zh-TW') return (isSaved ? '❤️ 您收藏的公告 · ' : '') + `因為您最近瀏覽了【${catTrans}】領域而為您推薦 · ${regTrans}`;
+        if (currentLang === 'ja') return (isSaved ? '❤️ お気に入りした公告 · ' : '') + `最近【${catTrans}】分野をご覧になったためAIがおすすめ · ${regTrans}`;
+        if (currentLang === 'vi') return (isSaved ? '❤️ Từ danh sách đã lưu · ' : '') + `Được AI gợi ý vì bạn vừa xem lĩnh vực [${catTrans}] · ${regTrans}`;
+        return localizedSummary;
+      }
+
+      // 드롭다운 내부 옵션 및 인기 키워드까지 6개 국어로 완벽 번역!
+      function updateStaticLabels() {
+        const t = I18N[currentLang] || I18N['ko'];
+        document.getElementById('site-language').value = currentLang;
+        document.getElementById('lbl-recent').textContent = t.recent;
+        document.getElementById('lbl-bookmark').textContent = t.bookmark;
+        document.getElementById('cnt-recent').textContent = recentViews.length;
+        document.getElementById('cnt-bookmark').textContent = bookmarks.length;
+
+        document.getElementById('lbl-hero-title').innerHTML = t.heroTitle;
+        document.getElementById('lbl-hero-sub').textContent = t.heroSub;
+        document.getElementById('sh-search-input').placeholder = t.searchPh;
+        document.getElementById('lbl-search-btn').textContent = t.searchBtn;
+        document.getElementById('lbl-popular').textContent = t.popular;
+
+        // 인기 키워드 5개 다국어 변환
+        t.popTags.forEach((tagText, idx) => {
+          const el = document.getElementById('pop-tag-' + idx);
+          if (el) el.textContent = tagText;
+        });
+
+        document.getElementById('lbl-f-age').textContent = t.fAge;
+        document.getElementById('lbl-f-nat').textContent = t.fNat;
+        document.getElementById('lbl-f-cat').textContent = t.fCat;
+        document.getElementById('lbl-f-reg').textContent = t.fReg;
+        document.getElementById('lbl-reset-btn').textContent = t.reset;
+
+        // 4대 드롭다운 내부 <option> 텍스트 다국어 변환
+        const ageOpts = document.getElementById('filter-age').options;
+        ageOpts[0].textContent = t.optAll; ageOpts[1].textContent = t.optYouth; ageOpts[2].textContent = t.optChild; ageOpts[3].textContent = t.optSenior;
+
+        const natOpts = document.getElementById('filter-nat').options;
+        natOpts[0].textContent = t.optAll; natOpts[1].textContent = t.optForeign; natOpts[2].textContent = t.optMulti;
+
+        const catOpts = document.getElementById('filter-cat').options;
+        catOpts[0].textContent = t.optAll;
+        CATEGORIES.forEach((c, i) => { if (catOpts[i + 1]) catOpts[i + 1].textContent = c.name[currentLang] || c.name['ko']; });
+
+        const regOpts = document.getElementById('filter-reg').options;
+        regOpts[0].textContent = t.optRegAll; regOpts[1].textContent = t.optRegSh; regOpts[2].textContent = t.optRegGg;
+
+        const sortOpts = document.getElementById('sh-sort-select').options;
+        sortOpts[0].textContent = t.sortLatest; sortOpts[1].textContent = t.sortSh; sortOpts[2].textContent = t.sortTitle;
+
+        document.getElementById('lbl-cat-sec-title').textContent = t.catTitle;
+        document.getElementById('lbl-cat-sec-desc').textContent = t.catDesc;
+        document.getElementById('lbl-rec-sec-title').innerHTML = t.recTitle;
+        document.getElementById('lbl-rec-sec-desc').textContent = t.recDesc;
+        document.getElementById('lbl-ctx-reset').textContent = t.ctxReset;
+        document.getElementById('lbl-zero-pii-badge').textContent = t.zeroPiiBadge;
+
+        document.getElementById('tab-all').textContent = t.tabAll;
+        document.getElementById('tab-siheung').textContent = t.tabSh;
+        document.getElementById('tab-gg').textContent = t.tabGg;
+        document.getElementById('lbl-fold-close').textContent = t.foldClose;
+      }
+
+      async function fetchAndRenderCategories() {
+        try {
+          const res = await fetch('/api/notices/counts');
+          categoryCounts = await res.json();
+        } catch (e) {}
+
+        const t = I18N[currentLang] || I18N['ko'];
+        const grid = document.getElementById('sh-category-grid');
+        grid.innerHTML = CATEGORIES.map(cat => {
+          const count = categoryCounts[cat.key] !== undefined ? categoryCounts[cat.key] : 0;
+          const isActive = (isFoldOpen && currentFilters.category === cat.key) ? 'active' : '';
+          const displayName = cat.name[currentLang] || cat.name['ko'];
+          return `
+            <div class="sh-cat-card ${isActive}" onclick="window.selectCategoryCard('${cat.key}')">
+              <div class="sh-cat-icon" style="background:${cat.bg};">${cat.icon}</div>
+              <div class="sh-cat-name">${displayName}</div>
+              <div class="sh-cat-count">${count}${t.unit}</div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      async function fetchAndRenderRecommendations() {
+        try {
+          const [recRes, langNoticesRes] = await Promise.all([
+            fetch('/api/context/recommend?contextId=' + encodeURIComponent(contextId)),
+            fetch('/api/notices?lang=' + encodeURIComponent(currentLang))
+          ]);
+          const recData = await recRes.json();
+          const langNotices = await langNoticesRes.json();
+
+          const langMap = {};
+          if (Array.isArray(langNotices)) {
+            langNotices.forEach(n => {
+              langMap[n.noticeId] = n;
+              noticeDataMap[n.noticeId] = n;
+            });
+          }
+
+          document.getElementById('sh-persona-text').innerHTML = buildLocalizedPersonaText(recData);
+
+          const recs = (recData && Array.isArray(recData.recommendations)) ? recData.recommendations.slice(0, 4) : [];
+          const grid = document.getElementById('sh-recommend-grid');
+          const t = I18N[currentLang] || I18N['ko'];
+
+          if (recs.length === 0) return;
+
+          grid.innerHTML = recs.map((item, idx) => {
+            const localized = langMap[item.noticeId] || item;
+            const title = localized.title || item.title;
+            const summary = localized.aiSummary || item.aiSummary || '';
+            const localizedReason = buildLocalizedMatchReason(item, summary);
+            const localizedCat = getCategoryName(item.aiCategory || '청년', currentLang);
+            const localizedDept = currentLang === 'ko'
+              ? (item.dept || '시흥시')
+              : (item.region === '시흥시' ? 'Siheung City' : 'Gyeonggi-do');
+
+            const mergedItem = {
+              ...item,
+              ...localized,
+              title,
+              aiSummary: summary,
+              matchReason: localizedReason,
+              matchScore: item.matchScore
+            };
+
+            noticeDataMap[item.noticeId] = mergedItem;
+            const isSaved = bookmarks.some(b => b.noticeId === item.noticeId);
+
+            return `
+              <div class="sh-rec-card theme-${idx % 4}" onclick="window.handleNoticeClickById('${item.noticeId}', true)">
+                <button type="button" class="sh-heart-btn" onclick="event.stopPropagation(); window.handleHeartClickById('${item.noticeId}')">
+                  ${isSaved ? '❤️' : '🤍'}
+                </button>
+                <div>
+                  <span class="sh-rec-badge">${t.aiBadge} ${item.matchScore || 95}% · ${localizedCat}</span>
+                  <h3 class="sh-rec-title">${title}</h3>
+                  <div class="sh-rec-reason">💡 ${localizedReason}</div>
+                </div>
+                <div class="sh-rec-footer">
+                  <span>${localizedDept}</span>
+                  <span style="text-decoration:underline;">${t.viewDetail}</span>
+                </div>
+              </div>
+            `;
+          }).join('');
+        } catch (e) {}
+      }
+
+      async function fetchAndRenderBoard() {
+        const panel = document.getElementById('sh-fold-list-panel');
+        if (!isFoldOpen) {
+          panel.classList.remove('open');
+          return;
+        }
+        panel.classList.add('open');
+
+        try {
+          const params = new URLSearchParams({
+            age: currentFilters.age,
+            nationality: currentFilters.nationality,
+            category: currentFilters.category,
+            region: currentFilters.region,
+            keyword: currentFilters.keyword,
+            lang: currentLang
+          });
+
+          const res = await fetch('/api/notices?' + params.toString());
+          const data = await res.json();
+          allNotices = Array.isArray(data) ? data : [];
+          allNotices.forEach(n => {
+            const existing = noticeDataMap[n.noticeId] || {};
+            noticeDataMap[n.noticeId] = { ...existing, ...n };
+          });
+
+          sortNoticesList();
+          renderBoardRowsAndPagination();
+        } catch (e) {}
+      }
+
+      function sortNoticesList() {
+        if (sortOrder === 'latest') {
+          allNotices.sort((a, b) => (b.postedDate || '').localeCompare(a.postedDate || ''));
+        } else if (sortOrder === 'siheung') {
+          allNotices.sort((a, b) => {
+            const aSh = a.region === '시흥시' ? 1 : 0;
+            const bSh = b.region === '시흥시' ? 1 : 0;
+            return bSh - aSh;
+          });
+        } else if (sortOrder === 'title') {
+          allNotices.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+        }
+      }
+
+      window.changeSortOrder = function(order) {
+        sortOrder = order;
+        currentPage = 1;
+        sortNoticesList();
+        renderBoardRowsAndPagination();
+      };
+
+      function renderBoardRowsAndPagination() {
+        const t = I18N[currentLang] || I18N['ko'];
+        const catLabel = getCategoryName(currentFilters.category, currentLang);
+        const kwText = currentFilters.keyword ? ` · '${currentFilters.keyword}'` : '';
+
+        document.getElementById('lbl-board-title').innerHTML =
+          `📂 [${catLabel}${kwText}] ${t.boardTitle} <span style="font-size:15px; color:#2563eb;">(${allNotices.length}${t.unit})</span>`;
+
+        const board = document.getElementById('sh-notice-board');
+        const pagination = document.getElementById('sh-pagination');
+
+        if (allNotices.length === 0) {
+          board.innerHTML = `<li style="text-align:center; padding:40px; color:#94a3b8;">조건에 맞는 공고가 없습니다.</li>`;
+          pagination.innerHTML = '';
+          return;
+        }
+
+        const totalPages = Math.ceil(allNotices.length / pageSize);
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        const startIdx = (currentPage - 1) * pageSize;
+        const pageItems = allNotices.slice(startIdx, startIdx + pageSize);
+
+        board.innerHTML = pageItems.map(item => {
+          const isSaved = bookmarks.some(b => b.noticeId === item.noticeId);
+          const localizedCat = getCategoryName(item.aiCategory || '가족', currentLang);
+          const localizedDept = currentLang === 'ko'
+            ? (item.dept || '시흥시')
+            : (item.region === '시흥시' ? 'Siheung City' : 'Gyeonggi-do');
+
+          return `
+            <li class="sh-board-row" onclick="window.handleNoticeClickById('${item.noticeId}', false)">
+              <span class="sh-board-cat">${localizedCat}</span>
+              <span class="sh-board-title">${item.title}</span>
+              <div class="sh-board-meta">
+                <span style="color:#1e40af; font-weight:600;">${localizedDept}</span>
+                <span>${item.postedDate || ''}</span>
+                <button type="button" onclick="event.stopPropagation(); window.handleHeartClickById('${item.noticeId}')" style="border:none; background:none; cursor:pointer; font-size:16px;">
+                  ${isSaved ? '❤️' : '🤍'}
+                </button>
+              </div>
+            </li>
+          `;
+        }).join('');
+
+        let pageHtml = `<button type="button" class="sh-page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="window.goToPage(${currentPage - 1})">&laquo;</button>`;
+        const blockSize = 5;
+        const currentBlock = Math.floor((currentPage - 1) / blockSize);
+        const startPage = currentBlock * blockSize + 1;
+        const endPage = Math.min(startPage + blockSize - 1, totalPages);
+
+        for (let p = startPage; p <= endPage; p++) {
+          pageHtml += `<button type="button" class="sh-page-btn ${p === currentPage ? 'active' : ''}" onclick="window.goToPage(${p})">${p}</button>`;
+        }
+        pageHtml += `<button type="button" class="sh-page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="window.goToPage(${currentPage + 1})">&raquo;</button>`;
+        pagination.innerHTML = pageHtml;
+      }
+
+      window.goToPage = function(pageNum) {
+        currentPage = pageNum;
+        renderBoardRowsAndPagination();
+        document.getElementById('sh-fold-list-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      };
+
+      window.closeFoldPanel = function() {
+        isFoldOpen = false;
+        currentFilters.category = '전체';
+        document.getElementById('filter-cat').value = '전체';
+        document.getElementById('sh-fold-list-panel').classList.remove('open');
+        fetchAndRenderCategories();
+      };
+
+      function logBehaviorAndRefreshAI(eventType, noticeId, category, keyword, dwellTimeSec) {
+        const params = new URLSearchParams({
+          contextId: contextId,
+          eventType: eventType || 'VIEW',
+          noticeId: noticeId || '',
+          category: category || '',
+          keyword: keyword || '',
+          dwellTimeSec: String(dwellTimeSec || 0)
+        });
+        fetch('/api/context/log?' + params.toString())
+          .then(() => fetchAndRenderRecommendations())
+          .catch(() => {});
+      }
+
+      window.handleNoticeClickById = function(noticeId, fromRecommend = false) {
+        let notice = noticeDataMap[noticeId] ||
+                     bookmarks.find(b => b.noticeId === noticeId) ||
+                     recentViews.find(r => r.noticeId === noticeId);
+        if (!notice) return;
+
+        recentViews = recentViews.filter(r => r.noticeId !== notice.noticeId);
+        recentViews.unshift(notice);
+        if (recentViews.length > 20) recentViews.pop();
+        localStorage.setItem('sh_recent_views', JSON.stringify(recentViews));
+        updateStaticLabels();
+
+        logBehaviorAndRefreshAI('VIEW', notice.noticeId, notice.aiCategory, '', 30);
+        openDetailModal(notice, fromRecommend);
+      };
+
+      window.handleHeartClickById = function(noticeId) {
+        let notice = noticeDataMap[noticeId] ||
+                     bookmarks.find(b => b.noticeId === noticeId) ||
+                     recentViews.find(r => r.noticeId === noticeId);
+        if (!notice) return;
+
+        const t = I18N[currentLang] || I18N['ko'];
+        const idx = bookmarks.findIndex(b => b.noticeId === notice.noticeId);
+        if (idx >= 0) {
+          bookmarks.splice(idx, 1);
+          logBehaviorAndRefreshAI('UNBOOKMARK', notice.noticeId, notice.aiCategory, '', 0);
+          window.showToast(t.toastRemoved);
+        } else {
+          bookmarks.unshift(notice);
+          logBehaviorAndRefreshAI('BOOKMARK', notice.noticeId, notice.aiCategory, notice.title, 40);
+          window.showToast(t.toastSaved);
+        }
+        localStorage.setItem('sh_bookmarks', JSON.stringify(bookmarks));
+        updateStaticLabels();
+        if (isFoldOpen) renderBoardRowsAndPagination();
+        fetchAndRenderRecommendations();
+      };
+
+      function openDetailModal(notice, fromRecommend = false) {
+        window.stopSpeak();
+        const t = I18N[currentLang] || I18N['ko'];
+        const isSaved = bookmarks.some(b => b.noticeId === notice.noticeId);
+        const localizedCat = getCategoryName(notice.aiCategory || '공고', currentLang);
+        noticeDataMap[notice.noticeId] = notice;
+
+        let targetUrl = (notice.url || '').trim();
+        if (targetUrl && !targetUrl.startsWith('http')) {
+          targetUrl = 'https://' + targetUrl;
+        }
+        if (!targetUrl) {
+          targetUrl = 'https://www.gov.kr/portal/rcvfvrSvc/SvcFind/svcSearchAll?query=' + encodeURIComponent(notice.title);
+        }
+
+        const reasonText = buildLocalizedMatchReason(notice, notice.aiSummary || '');
+
+        // 해시태그 칩 렌더링 (클릭 시 해당 태그로 즉시 연계 검색!)
+        const tagArray = (notice.aiTags || '').split(',').map(s => s.trim()).filter(Boolean);
+        const tagsHtml = tagArray.length > 0 ? `
+          <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:2px;">
+            ${tagArray.map(tag => {
+              const cleanKw = tag.replace('#', '');
+              return `<span class="sh-hashtag-chip" onclick="window.closeShModal(); window.quickKeyword('${cleanKw}')">${tag}</span>`;
+            }).join('')}
+          </div>
+        ` : '';
+
+        // 외국어 모드일 때는 한국어 원문을 깔끔한 접이식(details)으로 제공
+        const contentSectionHtml = currentLang === 'ko' ? `
+          <div style="font-size:13.5px; line-height:1.75; color:#334155; background:#f8fafc; padding:14px 16px; border-radius:10px; border:1px solid #e2e8f0; white-space:pre-line;">
+            <strong>${t.detailContentLabel}</strong><br>${notice.cleanContent || ''}
+          </div>
+        ` : `
+          <details style="font-size:13px; color:#475569; background:#f8fafc; padding:12px 16px; border-radius:10px; border:1px solid #e2e8f0; cursor:pointer;">
+            <summary style="font-weight:700; color:#334155;">📄 ${t.detailContentLabel}</summary>
+            <div style="margin-top:10px; white-space:pre-line; line-height:1.65;">${notice.cleanContent || ''}</div>
+          </details>
+        `;
+
+        document.getElementById('sh-modal-title').textContent = `[${localizedCat}] ${notice.title}`;
+        document.getElementById('sh-modal-header-actions').innerHTML = `
+          <button type="button" class="sh-btn" style="padding:5px 11px; font-size:12px;" onclick="window.speakText('${notice.noticeId}')">${t.ttsPlay}</button>
+          <button type="button" class="sh-btn" style="padding:5px 11px; font-size:12px;" onclick="window.copyNoticeSummary('${notice.noticeId}')">${t.copyBtn}</button>
+        `;
+
+        document.getElementById('sh-modal-body').innerHTML = `
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <span style="background:#dbeafe; color:#1e40af; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700;">${t.deptLabel}: ${notice.dept || '시흥시'}</span>
+            <span style="background:#f1f5f9; color:#334155; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600;">${t.supportLabel}: ${notice.supportType || '상시지원'}</span>
+            <span style="background:#f1f5f9; color:#64748b; padding:4px 10px; border-radius:999px; font-size:12px;">${t.dateLabel}: ${notice.postedDate || '-'}</span>
+          </div>
+          ${tagsHtml}
+          ${fromRecommend ? `
+          <div style="background:#fef3c7; border-left:4px solid #d97706; padding:10px 14px; border-radius:8px; font-size:13px; color:#92400e; font-weight:600;">
+            💡 <strong>${t.aiReasonLabel}:</strong> ${reasonText}
+          </div>` : ''}
+          <div style="background:#eff6ff; border-left:4px solid #2563eb; padding:14px 16px; border-radius:10px; font-size:14px; line-height:1.6; color:#1e3a8a; margin-top:4px;">
+            <div style="font-weight:800; margin-bottom:4px;">🤖 ${t.aiSummaryLabel}</div>
+            <div>${notice.aiSummary || notice.cleanContent || ''}</div>
+          </div>
+          ${contentSectionHtml}
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:14px; border-top:1px solid #e2e8f0; flex-wrap:wrap; gap:8px;">
+            <button type="button" class="sh-btn ${isSaved ? 'primary' : ''}" onclick="window.handleHeartClickById('${notice.noticeId}'); window.handleNoticeClickById('${notice.noticeId}', ${fromRecommend});">
+              ${isSaved ? t.saved : t.save}
+            </button>
+            <a href="${targetUrl}" target="_blank" rel="noopener noreferrer" class="sh-btn primary" style="text-decoration:none;">
+              🔗 ${t.goOrigin} &rarr;
+            </a>
+          </div>
+        `;
+        document.getElementById('sh-modal').classList.add('open');
+      }
+
+      window.openBookmarkModal = function() {
+        window.stopSpeak();
+        const t = I18N[currentLang] || I18N['ko'];
+        document.getElementById('sh-modal-title').textContent = `❤️ ${t.bookmark} (${bookmarks.length})`;
+        document.getElementById('sh-modal-header-actions').innerHTML = bookmarks.length > 0
+          ? `<button type="button" class="sh-btn danger" onclick="window.clearAllBookmarks()">${t.clearAllBtn}</button>`
+          : '';
+        renderSavedListModal(bookmarks, t.emptyModal, true);
+        document.getElementById('sh-modal').classList.add('open');
+      };
+
+      window.openRecentModal = function() {
+        window.stopSpeak();
+        const t = I18N[currentLang] || I18N['ko'];
+        document.getElementById('sh-modal-title').textContent = `🕒 ${t.recent} (${recentViews.length})`;
+        document.getElementById('sh-modal-header-actions').innerHTML = recentViews.length > 0
+          ? `<button type="button" class="sh-btn danger" onclick="window.clearAllRecentViews()">${t.clearAllBtn}</button>`
+          : '';
+        renderSavedListModal(recentViews, t.emptyModal, false);
+        document.getElementById('sh-modal').classList.add('open');
+      };
+
+      window.clearAllBookmarks = function() {
+        bookmarks = [];
+        localStorage.setItem('sh_bookmarks', '[]');
+        updateStaticLabels();
+        if (isFoldOpen) renderBoardRowsAndPagination();
+        fetchAndRenderRecommendations();
+        window.openBookmarkModal();
+      };
+
+      window.clearAllRecentViews = function() {
+        recentViews = [];
+        localStorage.setItem('sh_recent_views', '[]');
+        updateStaticLabels();
+        window.openRecentModal();
+      };
+
+      function renderSavedListModal(list, emptyMsg, allowDelete) {
+        const t = I18N[currentLang] || I18N['ko'];
+        const body = document.getElementById('sh-modal-body');
+        if (!list || list.length === 0) {
+          body.innerHTML = `<div style="text-align:center; padding:45px 20px; color:#64748b; font-size:14px;">${emptyMsg}</div>`;
+          return;
+        }
+        body.innerHTML = list.map(item => {
+          const localized = noticeDataMap[item.noticeId] || item;
+          const localizedCat = getCategoryName(localized.aiCategory || '공고', currentLang);
+          return `
+            <div class="sh-modal-item" onclick="window.handleNoticeClickById('${item.noticeId}', false)">
+              <div style="flex:1;">
+                <div style="font-size:12px; color:#2563eb; font-weight:700; margin-bottom:3px;">[${localizedCat}] ${localized.dept || ''}</div>
+                <div style="font-size:15px; font-weight:800; color:#0f172a; margin-bottom:4px;">${localized.title || item.title}</div>
+                <div style="font-size:13px; color:#475569;">${localized.aiSummary || item.aiSummary || ''}</div>
+              </div>
+              ${allowDelete ? `<button type="button" onclick="event.stopPropagation(); window.handleHeartClickById('${item.noticeId}'); window.openBookmarkModal();" style="border:none; background:#fee2e2; color:#dc2626; padding:6px 10px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">${t.delBtn}</button>` : ''}
+            </div>
+          `;
+        }).join('');
+      }
+
+      window.closeShModal = function() {
+        window.stopSpeak();
+        document.getElementById('sh-modal').classList.remove('open');
+      };
+
+      window.toggleClearBtn = function() {
+        const val = document.getElementById('sh-search-input').value;
+        document.getElementById('sh-search-clear-btn').style.display = val.length > 0 ? 'inline-flex' : 'none';
+      };
+
+      window.clearSearchInput = function() {
+        document.getElementById('sh-search-input').value = '';
+        window.toggleClearBtn();
+        currentFilters.keyword = '';
+        if (isFoldOpen) fetchAndRenderBoard();
+      };
+
+      window.changeLanguage = function(lang) {
+        window.stopSpeak();
+        currentLang = lang;
+        localStorage.setItem('sh_lang', lang);
+        updateStaticLabels();
+        fetchAndRenderCategories();
+        if (isFoldOpen) fetchAndRenderBoard();
+        fetchAndRenderRecommendations();
+      };
+
+      window.selectCategoryCard = function(catKey) {
+        if (isFoldOpen && currentFilters.category === catKey) {
+          window.closeFoldPanel();
+          return;
+        }
+        isFoldOpen = true;
+        currentFilters.category = catKey;
+        document.getElementById('filter-cat').value = catKey;
+        currentPage = 1;
+
+        logBehaviorAndRefreshAI('FILTER', null, catKey, '', 0);
+        fetchAndRenderCategories();
+        fetchAndRenderBoard();
+      };
+
+      window.onFilterChange = function() {
+        currentFilters.age = document.getElementById('filter-age').value;
+        currentFilters.nationality = document.getElementById('filter-nat').value;
+        currentFilters.category = document.getElementById('filter-cat').value;
+        currentFilters.region = document.getElementById('filter-reg').value;
+        currentPage = 1;
+        isFoldOpen = true;
+
+        let targetCat = currentFilters.category;
+        if (targetCat === '전체') {
+          if (currentFilters.age === '청년' || currentFilters.age === '어르신') targetCat = currentFilters.age;
+          else if (currentFilters.nationality === '외국인' || currentFilters.nationality === '다문화') targetCat = currentFilters.nationality;
+        }
+        if (targetCat !== '전체') {
+          logBehaviorAndRefreshAI('FILTER', null, targetCat, '', 0);
+        }
+        fetchAndRenderCategories();
+        fetchAndRenderBoard();
+      };
+
+      window.triggerSearch = function() {
+        const kw = document.getElementById('sh-search-input').value.trim();
+        currentFilters.keyword = kw;
+        currentPage = 1;
+        isFoldOpen = true;
+        if (kw) logBehaviorAndRefreshAI('SEARCH', null, currentFilters.category, kw, 0);
+        fetchAndRenderCategories();
+        fetchAndRenderBoard();
+      };
+
+      window.quickKeyword = function(kw) {
+        document.getElementById('sh-search-input').value = kw;
+        window.toggleClearBtn();
+        window.triggerSearch();
+      };
+
+      window.filterRegionTab = function(reg) {
+        currentFilters.region = reg;
+        document.getElementById('filter-reg').value = reg;
+        document.getElementById('tab-all').className = reg === '전체' ? 'sh-btn primary' : 'sh-btn';
+        document.getElementById('tab-siheung').className = reg === '시흥시' ? 'sh-btn primary' : 'sh-btn';
+        document.getElementById('tab-gg').className = reg === '경기도 전체' ? 'sh-btn primary' : 'sh-btn';
+        currentPage = 1;
+        fetchAndRenderBoard();
+      };
+
+      window.resetAllFilters = function() {
+        currentFilters = { age: '전체', nationality: '전체', category: '전체', region: '전체', keyword: '' };
+        document.getElementById('sh-search-input').value = '';
+        window.toggleClearBtn();
+        document.getElementById('filter-age').value = '전체';
+        document.getElementById('filter-nat').value = '전체';
+        document.getElementById('filter-cat').value = '전체';
+        document.getElementById('filter-reg').value = '전체';
+        currentPage = 1;
+        window.closeFoldPanel();
+      };
+
+      window.resetBehaviorContext = function() {
+        const t = I18N[currentLang] || I18N['ko'];
+        fetch('/api/context/reset?contextId=' + encodeURIComponent(contextId))
+          .then(() => {
+            window.showToast(t.toastCtxReset);
+            fetchAndRenderRecommendations();
+          });
+      };
+
+      window.addEventListener('DOMContentLoaded', () => {
+        updateStaticLabels();
+        fetchAndRenderCategories();
+        fetchAndRenderRecommendations();
+      });
+    })();
+  </script>
+</body>
+</html>
